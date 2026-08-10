@@ -64,11 +64,11 @@ const chartData = [
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "var(--chart-1)",
+    color: "oklch(0.62 0.17 145)",
   },
   mobile: {
     label: "Mobile",
-    color: "var(--chart-2)",
+    color: "oklch(0.76 0.13 145)",
   },
 } satisfies ChartConfig
 
