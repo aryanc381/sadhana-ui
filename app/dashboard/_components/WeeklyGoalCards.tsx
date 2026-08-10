@@ -32,14 +32,14 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
                 Week {goal.week_number ?? index + 1}
               </CardDescription>
               <CardAction>
-                <Badge variant="outline" className="px-[0.35vw] py-[0.25vw]">
+                <Badge variant="outline" className="px-[0.5vw] py-[0.35vw]">
                   {goal.status}
                 </Badge>
               </CardAction>
               <CardTitle>{goal.name}</CardTitle>
             </CardHeader>
             <CardContent className="p-3 pt-0">
-              <div className="flex justify-between gap-4 text-sm text-muted-foreground">
+              <div className="relative top-[1vw] flex justify-between gap-4 text-sm text-muted-foreground">
                 <span className="whitespace-nowrap">
                   {format(new Date(goal.start_date), "MMM dd, yyyy")}
                 </span>
