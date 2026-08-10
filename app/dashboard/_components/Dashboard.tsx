@@ -76,11 +76,16 @@ export function Dashboard() {
             <SidebarTrigger />
             <span className="text-[1vw]">Dashboard</span>
           </div>
-          <Button className="ml-auto" onClick={() => setIsCreateOpen(true)}>
-            Create
-          </Button>
         </header>
         <main className="flex-1 p-6">
+          <div className="mb-6 flex justify-end">
+            <Button
+              className="cursor-pointer"
+              onClick={() => setIsCreateOpen(true)}
+            >
+              Create
+            </Button>
+          </div>
           <GoalsList goals={goals} isLoading={isLoading} />
         </main>
       </SidebarInset>
