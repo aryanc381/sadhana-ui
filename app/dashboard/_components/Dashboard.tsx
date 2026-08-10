@@ -105,6 +105,7 @@ export function Dashboard() {
             </div>
             <Button
               className="cursor-pointer"
+              variant="outline"
               onClick={() => setIsCreateOpen(true)}
             >
               Create
