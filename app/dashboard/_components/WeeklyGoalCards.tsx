@@ -32,7 +32,7 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
         {goals.map((goal, index) => (
           <Card
             key={goal.id}
-            className="h-28 min-w-72 shrink-0 gap-0 py-0"
+            className="h-28 min-w-72 shrink-0 cursor-pointer gap-0 py-0 transition-colors hover:bg-muted/50"
           >
             <CardHeader className="p-3 pb-1">
               <CardDescription>
