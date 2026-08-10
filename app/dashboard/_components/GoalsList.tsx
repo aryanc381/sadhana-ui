@@ -11,7 +11,7 @@ export function GoalsList({ goals, isLoading }: GoalsListProps) {
   }
 
   if (!goals.length) {
-    return <p className="text-sm text-muted-foreground">No weekly goals yet.</p>
+    return null
   }
 
   return (
