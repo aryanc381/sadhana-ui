@@ -25,6 +25,7 @@ import { AppSidebar } from "./AppSidebar"
 import { ChartAreaInteractive } from "./ChartAreaInteractive"
 import { CreateGoalDialog } from "./CreateGoalDialog"
 import { DatePickerWithRange } from "./DatePickerWithRange"
+import { WeeklyGoalCards } from "./WeeklyGoalCards"
 
 export function Dashboard() {
   const [skills, setSkills] = React.useState<Skill[]>([])
@@ -70,7 +71,7 @@ export function Dashboard() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-20 items-center border-b px-6">
+        <header className="flex h-16 items-center border-b px-6">
           <div className="flex items-center gap-5">
             <SidebarTrigger />
             <span className="text-[1vw]">Dashboard</span>
@@ -115,6 +116,7 @@ export function Dashboard() {
             dateRange={dateRange}
             goalName={selectedGoal?.name}
           />
+          <WeeklyGoalCards goals={goals} />
         </main>
       </SidebarInset>
       <CreateGoalDialog
