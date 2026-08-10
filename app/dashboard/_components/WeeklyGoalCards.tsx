@@ -32,7 +32,9 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
                 Week {goal.week_number ?? index + 1}
               </CardDescription>
               <CardAction>
-                <Badge variant="outline">{goal.status}</Badge>
+                <Badge variant="outline" className="px-[0.20vw] py-[0.20vw]">
+                  {goal.status}
+                </Badge>
               </CardAction>
               <CardTitle>{goal.name}</CardTitle>
             </CardHeader>
