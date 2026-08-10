@@ -1,2 +1,14 @@
 @import "tailwindcss";
 
+:root {
+  --font-sans: var(--font-inter-tight);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-inter-tight), sans-serif;
+}
