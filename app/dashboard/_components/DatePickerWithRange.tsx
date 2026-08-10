@@ -23,13 +23,16 @@ export function DatePickerWithRange({
   value,
   onChange,
 }: DatePickerWithRangeProps) {
+  const [open, setOpen] = React.useState(false)
+
   return (
     <Field>
       <FieldLabel htmlFor="date-picker-range">Date range</FieldLabel>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
             <Button
+              type="button"
               variant="outline"
               id="date-picker-range"
               className="justify-start px-2.5 font-normal"
@@ -54,7 +57,10 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={value?.from}
             selected={value}
-            onSelect={onChange}
+            onSelect={(nextValue) => {
+              onChange(nextValue)
+              if (nextValue?.from && nextValue.to) setOpen(false)
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>

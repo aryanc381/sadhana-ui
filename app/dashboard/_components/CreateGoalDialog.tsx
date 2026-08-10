@@ -32,7 +32,6 @@ type CreateGoalDialogProps = {
   onOpenChange: (open: boolean) => void
   skills: Skill[]
   onSkillCreated: (skill: Skill) => void
-  onCreated: () => void
 }
 
 export function CreateGoalDialog({
@@ -40,7 +39,6 @@ export function CreateGoalDialog({
   onOpenChange,
   skills,
   onSkillCreated,
-  onCreated,
 }: CreateGoalDialogProps) {
   const [name, setName] = React.useState("")
   const [skillId, setSkillId] = React.useState("")
@@ -81,7 +79,6 @@ export function CreateGoalDialog({
         await assignSkillToGoal(goal.id, skillId)
       }
 
-      onCreated()
       onOpenChange(false)
       toast.add({
         title: "Goal created",
