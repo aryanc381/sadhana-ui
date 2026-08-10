@@ -13,9 +13,7 @@ export function Dashboard() {
         <header className="flex h-16 items-center border-b px-4">
           <SidebarTrigger />
         </header>
-        <main className="flex-1 p-6">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-        </main>
+        <main className="flex-1 p-6" />
       </SidebarInset>
     </SidebarProvider>
   )
