@@ -9,7 +9,9 @@ type BackendGoal = Omit<WeeklyGoal, "id"> & { _id: string }
 function normalizeGoal(goal: BackendGoal): WeeklyGoal {
   return {
     id: goal._id,
+    week_number: goal.week_number,
     name: goal.name,
+    description: goal.description,
     start_date: goal.start_date,
     end_date: goal.end_date,
     status: goal.status,

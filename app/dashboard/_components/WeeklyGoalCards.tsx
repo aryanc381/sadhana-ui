@@ -1,8 +1,10 @@
 import { format } from "date-fns"
 
 import type { WeeklyGoal } from "@/lib/types/sadhana"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -20,19 +22,28 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
     <section className="mt-8">
       <h2 className="mb-4 text-lg font-medium">Weekly goals</h2>
       <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {goals.map((goal) => (
-          <Card key={goal.id} className="relative min-w-72 shrink-0">
-            <CardHeader>
-              <CardDescription>Week {goal.week_number}</CardDescription>
-              <span className="absolute top-6 right-6 text-sm text-muted-foreground">
-                {goal.status}
-              </span>
+        {goals.map((goal, index) => (
+          <Card
+            key={goal.id}
+            className="h-40 min-w-72 shrink-0 border border-border"
+          >
+            <CardHeader className="p-4 pb-2">
+              <CardDescription>
+                Week {goal.week_number ?? index + 1}
+              </CardDescription>
+              <CardAction>
+                <Badge variant="outline">{goal.status}</Badge>
+              </CardAction>
               <CardTitle>{goal.name}</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="text-sm text-muted-foreground">
-                <p>{format(new Date(goal.start_date), "MMM dd, yyyy")}</p>
-                <p>{format(new Date(goal.end_date), "MMM dd, yyyy")}</p>
+            <CardContent className="p-4 pt-1">
+              <div className="flex justify-between gap-4 text-sm text-muted-foreground">
+                <span className="whitespace-nowrap">
+                  {format(new Date(goal.start_date), "MMM dd, yyyy")}
+                </span>
+                <span className="whitespace-nowrap">
+                  {format(new Date(goal.end_date), "MMM dd, yyyy")}
+                </span>
               </div>
             </CardContent>
           </Card>

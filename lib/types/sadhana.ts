@@ -6,7 +6,9 @@ export type Skill = {
 
 export type WeeklyGoal = {
   id: string
+  week_number?: number
   name: string
+  description: string | null
   start_date: string
   end_date: string
   status: string
