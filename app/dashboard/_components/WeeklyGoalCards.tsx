@@ -21,13 +21,13 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
   return (
     <section className="mt-8">
       <h2 className="mb-4 text-lg font-medium">Weekly goals</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-4 overflow-x-auto px-px pt-px pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {goals.map((goal, index) => (
           <Card
             key={goal.id}
-            className="h-40 min-w-72 shrink-0 border border-border"
+            className="h-32 min-w-72 shrink-0"
           >
-            <CardHeader className="p-4 pb-2">
+            <CardHeader className="p-3 pb-1">
               <CardDescription>
                 Week {goal.week_number ?? index + 1}
               </CardDescription>
@@ -36,7 +36,7 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
               </CardAction>
               <CardTitle>{goal.name}</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 pt-1">
+            <CardContent className="p-3 pt-0">
               <div className="flex justify-between gap-4 text-sm text-muted-foreground">
                 <span className="whitespace-nowrap">
                   {format(new Date(goal.start_date), "MMM dd, yyyy")}
