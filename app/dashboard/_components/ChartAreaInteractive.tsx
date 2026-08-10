@@ -68,7 +68,7 @@ const chartConfig = {
   },
   mobile: {
     label: "Mobile",
-    color: "oklch(0.76 0.13 145)",
+    color: "oklch(0.68 0.14 175)",
   },
 } satisfies ChartConfig
 
