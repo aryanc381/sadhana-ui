@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
 import { DatePickerWithRange } from "./DatePickerWithRange"
 import { CreateSkillDialog } from "./CreateSkillDialog"
@@ -41,6 +42,7 @@ export function CreateGoalDialog({
   onSkillCreated,
 }: CreateGoalDialogProps) {
   const [name, setName] = React.useState("")
+  const [description, setDescription] = React.useState("")
   const [skillId, setSkillId] = React.useState("")
   const [dateRange, setDateRange] = React.useState<DateRange>()
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false)
@@ -71,6 +73,7 @@ export function CreateGoalDialog({
     try {
       const goal = await createWeeklyGoal({
         name,
+        description,
         start_date: format(dateRange.from, "yyyy-MM-dd"),
         end_date: format(dateRange.to, "yyyy-MM-dd"),
       })
@@ -114,6 +117,14 @@ export function CreateGoalDialog({
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="goal-description">Description</FieldLabel>
+              <Textarea
+                id="goal-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
               />
             </Field>
             <Field>
