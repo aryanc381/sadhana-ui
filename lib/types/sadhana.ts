@@ -14,6 +14,23 @@ export type WeeklyGoal = {
   status: string
 }
 
+export type TaskStatus = "pending" | "completed" | "missed"
+
+export type DailyTask = {
+  id: string
+  task_name: string
+  task_description: string
+  skill_id: string
+  status: TaskStatus
+}
+
+export type DailyTicket = {
+  id: string
+  date: string
+  status: string
+  tasks: DailyTask[]
+}
+
 export type CreateSkillInput = Pick<Skill, "name" | "description">
 
 export type CreateWeeklyGoalInput = {
