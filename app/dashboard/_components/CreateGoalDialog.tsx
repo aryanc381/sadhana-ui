@@ -141,7 +141,7 @@ export function CreateGoalDialog({
                 >
                   {selectedSkill?.name ?? "Choose a skill"}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent side="bottom" sideOffset={8} align="start">
                   {skills.map((skill) => (
                     <DropdownMenuItem
                       key={skill.id}
