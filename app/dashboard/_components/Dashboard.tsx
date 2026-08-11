@@ -77,7 +77,7 @@ export function Dashboard() {
             <span className="text-[1vw]">Dashboard</span>
           </div>
         </header>
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-6">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div className="flex items-end gap-4">
               <DatePickerWithRange
