@@ -5,17 +5,22 @@ import type {
   TaskStatus,
 } from "../types/sadhana"
 
-type BackendTask = Omit<DailyTask, "id" | "skill_id"> & {
+type ApiTask = {
   _id: string
+  task_name: string
+  task_description?: string
   skill_id: string | { _id: string }
+  status: TaskStatus
 }
 
-type BackendTicket = Omit<DailyTicket, "id" | "tasks"> & {
+type ApiTicket = {
   _id: string
-  tasks: BackendTask[]
+  date: string
+  status: string
+  tasks: ApiTask[]
 }
 
-function normalizeTask(task: BackendTask): DailyTask {
+function normalizeTask(task: ApiTask): DailyTask {
   return {
     id: task._id,
     task_name: task.task_name,
@@ -26,7 +31,7 @@ function normalizeTask(task: BackendTask): DailyTask {
   }
 }
 
-function normalizeTicket(ticket: BackendTicket): DailyTicket {
+function normalizeTicket(ticket: ApiTicket): DailyTicket {
   return {
     id: ticket._id,
     date: ticket.date,
@@ -36,7 +41,7 @@ function normalizeTicket(ticket: BackendTicket): DailyTicket {
 }
 
 export async function getDailyTickets(weeklyGoalId: string) {
-  const { tickets } = await request<{ tickets: BackendTicket[] }>(
+  const { tickets } = await request<{ tickets: ApiTicket[] }>(
     `/weekly-goals/${weeklyGoalId}/daily-tickets`,
   )
   return tickets.map(normalizeTicket)
@@ -56,13 +61,12 @@ export async function createTask(
   ticketId: string,
   input: Pick<DailyTask, "skill_id" | "task_name" | "task_description">,
 ) {
-  const { ticket } = await request<{ ticket: BackendTicket }>(
+  const { ticket } = await request<{ ticket: ApiTicket }>(
     `/daily-tickets/${ticketId}/tasks`,
-    { method: "POST", body: JSON.stringify({
-      skill_id: input.skill_id,
-      task_name: input.task_name,
-      task_description: input.task_description,
-    }) },
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
   )
   return normalizeTicket(ticket)
 }
@@ -71,7 +75,7 @@ async function updateTask(
   path: string,
   body?: Record<string, string>,
 ) {
-  const { ticket } = await request<{ ticket: BackendTicket }>(path, {
+  const { ticket } = await request<{ ticket: ApiTicket }>(path, {
     method: "PATCH",
     body: body ? JSON.stringify(body) : undefined,
   })
@@ -99,7 +103,7 @@ export function updateTaskStatus(
 }
 
 export async function deleteTask(ticketId: string, taskId: string) {
-  const { ticket } = await request<{ ticket: BackendTicket }>(
+  const { ticket } = await request<{ ticket: ApiTicket }>(
     `/daily-tickets/${ticketId}/tasks/${taskId}`,
     { method: "DELETE" },
   )
