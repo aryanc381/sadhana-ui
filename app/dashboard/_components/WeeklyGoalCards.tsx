@@ -26,9 +26,9 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
   if (!goals.length) return null
 
   return (
-    <section className="mt-8">
+    <section className="mt-8 w-full min-w-0 max-w-full">
       <h2 className="mb-4 text-lg font-medium">Weekly goals</h2>
-      <div className="flex gap-4 overflow-x-auto px-px pt-px pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-full min-w-0 max-w-full flex-nowrap gap-4 overflow-x-auto overflow-y-hidden px-px pt-px pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {goals.map((goal, index) => (
           <Card
             key={goal.id}

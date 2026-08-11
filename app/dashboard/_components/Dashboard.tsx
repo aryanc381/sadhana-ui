@@ -70,14 +70,14 @@ export function Dashboard() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="flex h-16 items-center border-b px-6">
           <div className="flex items-center gap-5">
             <SidebarTrigger />
             <span className="text-[1vw]">Dashboard</span>
           </div>
         </header>
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-6">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div className="flex items-end gap-4">
               <DatePickerWithRange
