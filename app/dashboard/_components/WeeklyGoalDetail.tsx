@@ -208,7 +208,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
             </div>
           </div>
           <div className="grid min-w-0 gap-6 lg:grid-cols-[2fr_3fr]">
-        <Card className="h-[40rem] min-w-0">
+        <Card className="h-[calc(40rem+1.5vw)] min-w-0">
           <CardHeader><CardTitle>Rough idea</CardTitle></CardHeader>
           <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
             <div className="flex flex-wrap gap-1 border-b pb-3">
@@ -221,7 +221,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
             <Button onClick={saveRoughIdea} className="mt-auto cursor-pointer self-start">Save notes</Button>
           </CardContent>
         </Card>
-        <Card className="h-[40rem] min-w-0">
+        <Card className="h-[calc(40rem+1.5vw)] min-w-0">
           <CardHeader><CardTitle>Daily tickets</CardTitle></CardHeader>
           <CardContent className="min-h-0 min-w-0 flex-1 p-0">
             <ScrollArea className="h-full px-6">
