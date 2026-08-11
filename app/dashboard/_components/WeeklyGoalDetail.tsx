@@ -207,7 +207,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
               <h1 className="text-2xl font-semibold">{goal.name}</h1>
             </div>
           </div>
-          <div className="grid min-w-0 gap-6 lg:min-h-[calc(100vh-12rem)] lg:grid-cols-[2fr_3fr]">
+          <div className="grid min-w-0 gap-6 lg:min-h-[calc(100vh-16rem)] lg:grid-cols-[2fr_3fr]">
         <Card className="h-[36rem] min-w-0 lg:h-full">
           <CardHeader><CardTitle>Rough idea</CardTitle></CardHeader>
           <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
