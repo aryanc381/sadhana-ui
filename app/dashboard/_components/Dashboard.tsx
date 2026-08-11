@@ -70,7 +70,7 @@ export function Dashboard() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="flex h-16 items-center border-b px-6">
           <div className="flex items-center gap-5">
             <SidebarTrigger />
