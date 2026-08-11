@@ -54,6 +54,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
 import { AppSidebar } from "./AppSidebar"
+import { CreateSkillDialog } from "./CreateSkillDialog"
 
 const taskStatuses: TaskStatus[] = ["pending", "completed", "missed"]
 
@@ -74,6 +75,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
   const [taskName, setTaskName] = React.useState("")
   const [taskDescription, setTaskDescription] = React.useState("")
   const [taskSkillId, setTaskSkillId] = React.useState("")
+  const [isSkillOpen, setIsSkillOpen] = React.useState(false)
   const editorRef = React.useRef<Editor | null>(null)
   const editor = useEditor({
     extensions: [StarterKit],
@@ -120,15 +122,15 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
 
   React.useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
-      if (!event.metaKey || event.key.toLowerCase() !== "d") return
+      if ((!event.metaKey && !event.ctrlKey) || event.key.toLowerCase() !== "d") return
       const selectedTicketId = openTicketId ?? tickets[0]?.id
       if (!selectedTicketId) return
       event.preventDefault()
       openTaskDialog(selectedTicketId)
     }
 
-    window.addEventListener("keydown", handleShortcut)
-    return () => window.removeEventListener("keydown", handleShortcut)
+    window.addEventListener("keydown", handleShortcut, true)
+    return () => window.removeEventListener("keydown", handleShortcut, true)
   }, [openTicketId, tickets])
 
   function replaceTicket(nextTicket: DailyTicket) {
@@ -168,6 +170,13 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
     return skills.find((skill) => skill.id === skillId)?.name ?? "Unknown skill"
   }
 
+  function handleSkillCreated(skill: Skill) {
+    setSkills((current) => [...current, skill])
+    setTaskSkillId(skill.id)
+    setIsSkillOpen(false)
+    setIsTaskOpen(true)
+  }
+
   if (!goal) return <div className="p-6 text-sm text-muted-foreground">Loading goal...</div>
 
   return (
@@ -204,12 +213,11 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
               <ArrowLeft />
             </Button>
             <div>
-              <p className="text-sm text-muted-foreground">Week {goal.week_number}</p>
               <h1 className="text-2xl font-semibold">{goal.name}</h1>
             </div>
           </div>
           <div className="grid min-w-0 gap-6 lg:grid-cols-[2fr_3fr]">
-        <Card className="h-[36rem] min-w-0">
+        <Card className="h-[calc(40rem+1.5vw)] min-w-0">
           <CardHeader><CardTitle>Rough idea</CardTitle></CardHeader>
           <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
             <div className="flex flex-wrap gap-1 border-b pb-3">
@@ -222,10 +230,10 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
             <Button onClick={saveRoughIdea} className="mt-auto cursor-pointer self-start">Save notes</Button>
           </CardContent>
         </Card>
-        <Card className="h-[36rem] min-w-0">
+        <Card className="h-[calc(40rem+1.5vw)] min-w-0">
           <CardHeader><CardTitle>Daily tickets</CardTitle></CardHeader>
-          <CardContent className="min-w-0 p-0">
-            <ScrollArea className="h-[32rem] px-6">
+          <CardContent className="min-h-0 min-w-0 flex-1 p-0">
+            <ScrollArea className="h-full px-6">
               <div className="space-y-2 pb-6">
                 {tickets.map((ticket) => (
                   <div key={ticket.id} className="py-[1vw]">
@@ -255,15 +263,34 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
             <div className="space-y-4 py-4">
               <Input value={taskName} onChange={(event) => setTaskName(event.target.value)} placeholder="Task name" required />
               <Textarea value={taskDescription} onChange={(event) => setTaskDescription(event.target.value)} placeholder="Description" />
-              <Select value={taskSkillId} onValueChange={(value) => setTaskSkillId(value ?? "")} required>
+              <Select
+                value={taskSkillId}
+                onValueChange={(value) => {
+                  if (value === "create-new-skill") {
+                    setIsTaskOpen(false)
+                    setIsSkillOpen(true)
+                    return
+                  }
+                  setTaskSkillId(value ?? "")
+                }}
+                required
+              >
                 <SelectTrigger><Badge className="pointer-events-none bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground">{taskSkillId ? skillName(taskSkillId) : "Select a skill"}</Badge></SelectTrigger>
-                <SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem className="py-2" key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent>
+                <SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>
+                  {skills.map((skill) => <SelectItem className="py-2" key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}
+                  <SelectItem className="py-2" value="create-new-skill">+ Create new skill</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+      <CreateSkillDialog
+        open={isSkillOpen}
+        onOpenChange={setIsSkillOpen}
+        onCreated={handleSkillCreated}
+      />
         </main>
       </SidebarInset>
     </SidebarProvider>
