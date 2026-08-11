@@ -204,8 +204,10 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
               <ArrowLeft />
             </Button>
             <div>
-              <p className="text-sm text-muted-foreground">Week {goal.week_number}</p>
-              <h1 className="text-2xl font-semibold">{goal.name}</h1>
+              <p className="text-base font-medium text-foreground">
+                Week {goal.week_number ?? "—"}
+              </p>
+              <h1 className="text-2xl font-semibold tracking-[-0.1vw]">{goal.name}</h1>
             </div>
           </div>
           <div className="grid min-w-0 gap-6 lg:grid-cols-[2fr_3fr]">
