@@ -94,7 +94,7 @@ export function Dashboard() {
                   <SelectTrigger id="goal-select" className="cursor-pointer">
                     <SelectValue placeholder={goals.length ? "Choose a goal" : "No goals"} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent alignItemWithTrigger={false}>
                     {goals.map((goal) => (
                       <SelectItem key={goal.id} value={goal.id}>
                         {goal.name}

@@ -4,6 +4,9 @@ import * as React from "react"
 import { format } from "date-fns"
 import { ArrowLeft, Bold, Italic, List, ListOrdered, MoreHorizontal, Plus } from "lucide-react"
 import Link from "next/link"
+import type { Editor } from "@tiptap/core"
+import { EditorContent, useEditor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
 
 import { getSkills } from "@/lib/api/skills"
 import {
@@ -22,6 +25,14 @@ import type {
   WeeklyGoal,
 } from "@/lib/types/sadhana"
 import { Badge } from "@/components/ui/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -38,9 +49,11 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
+import { AppSidebar } from "./AppSidebar"
 
 const taskStatuses: TaskStatus[] = ["pending", "completed", "missed"]
 
@@ -61,6 +74,31 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
   const [taskName, setTaskName] = React.useState("")
   const [taskDescription, setTaskDescription] = React.useState("")
   const [taskSkillId, setTaskSkillId] = React.useState("")
+  const editorRef = React.useRef<Editor | null>(null)
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: "",
+    immediatelyRender: false,
+    editorProps: {
+      handleKeyDown: (_view, event): boolean => {
+        const currentEditor = editorRef.current
+        if (!currentEditor) return false
+        if (event.key !== "Tab") return false
+
+        event.preventDefault()
+        if (currentEditor.isActive("listItem")) {
+          return event.shiftKey
+            ? currentEditor.chain().focus().liftListItem("listItem").run()
+            : currentEditor.chain().focus().sinkListItem("listItem").run()
+        }
+
+        return currentEditor.chain().focus().insertContent("  ").run()
+      },
+    },
+    onUpdate: ({ editor: nextEditor }) => setRoughIdea(nextEditor.getHTML()),
+    onCreate: ({ editor: nextEditor }) => { editorRef.current = nextEditor },
+    onDestroy: () => { editorRef.current = null },
+  })
 
   React.useEffect(() => {
     let active = true
@@ -79,6 +117,19 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
       }))
     return () => { active = false }
   }, [goalId])
+
+  React.useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if (!event.metaKey || event.key.toLowerCase() !== "d") return
+      const selectedTicketId = openTicketId ?? tickets[0]?.id
+      if (!selectedTicketId) return
+      event.preventDefault()
+      openTaskDialog(selectedTicketId)
+    }
+
+    window.addEventListener("keydown", handleShortcut)
+    return () => window.removeEventListener("keydown", handleShortcut)
+  }, [openTicketId, tickets])
 
   function replaceTicket(nextTicket: DailyTicket) {
     setTickets((current) => current.map((ticket) => ticket.id === nextTicket.id ? nextTicket : ticket))
@@ -120,51 +171,74 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
   if (!goal) return <div className="p-6 text-sm text-muted-foreground">Loading goal...</div>
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="mb-6 flex items-center gap-3">
-        <Button
-          render={<Link href="/dashboard" aria-label="Back to dashboard" />}
-          variant="ghost"
-          size="icon"
-          className="cursor-pointer"
-        >
-          <ArrowLeft />
-        </Button>
-        <div>
-          <p className="text-sm text-muted-foreground">Week {goal.week_number}</p>
-          <h1 className="text-2xl font-semibold">{goal.name}</h1>
-        </div>
-      </div>
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Card className="min-w-0">
-          <CardHeader><CardTitle>Rough idea</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-1 border-b pb-3">
-              <Button type="button" variant="ghost" size="icon" onClick={() => setRoughIdea((value) => `**${value}**`)}><Bold /></Button>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setRoughIdea((value) => `*${value}*`)}><Italic /></Button>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setRoughIdea((value) => `${value}\n- `)}><List /></Button>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setRoughIdea((value) => `${value}\n1. `)}><ListOrdered /></Button>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="min-w-0 overflow-x-hidden">
+        <header className="flex h-16 items-center border-b px-6">
+          <div className="flex items-center gap-5">
+            <SidebarTrigger />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href="/dashboard" />}>Dashboard</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href="/dashboard" />}>Goals</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem><BreadcrumbPage>{goal.name}</BreadcrumbPage></BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        <main className="min-w-0 flex-1 p-6">
+          <div className="mb-6 flex items-center gap-3">
+            <Button
+              render={<Link href="/dashboard" aria-label="Back to dashboard" />}
+              nativeButton={false}
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer"
+            >
+              <ArrowLeft />
+            </Button>
+            <div>
+              <p className="text-sm text-muted-foreground">Week {goal.week_number}</p>
+              <h1 className="text-2xl font-semibold">{goal.name}</h1>
             </div>
-            <Textarea value={roughIdea} onChange={(event) => setRoughIdea(event.target.value)} placeholder="Write your thoughts..." className="min-h-80 resize-none border-0 p-0 shadow-none focus-visible:ring-0" />
-            <Button onClick={saveRoughIdea} className="cursor-pointer">Save notes</Button>
+          </div>
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[2fr_3fr]">
+        <Card className="h-[36rem] min-w-0">
+          <CardHeader><CardTitle>Rough idea</CardTitle></CardHeader>
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
+            <div className="flex flex-wrap gap-1 border-b pb-3">
+              <Button type="button" variant="ghost" size="icon" onClick={() => editor?.chain().focus().toggleBold().run()}><Bold /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => editor?.chain().focus().toggleItalic().run()}><Italic /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => editor?.chain().focus().toggleBulletList().run()}><List /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => editor?.chain().focus().toggleOrderedList().run()}><ListOrdered /></Button>
+            </div>
+            <EditorContent editor={editor} className="min-h-0 flex-1 overflow-y-auto [&_.tiptap]:min-h-full [&_.tiptap]:outline-none [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-6 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-6" />
+            <Button onClick={saveRoughIdea} className="mt-auto cursor-pointer self-start">Save notes</Button>
           </CardContent>
         </Card>
-        <Card className="min-w-0">
+        <Card className="h-[36rem] min-w-0">
           <CardHeader><CardTitle>Daily tickets</CardTitle></CardHeader>
           <CardContent className="min-w-0 p-0">
             <ScrollArea className="h-[32rem] px-6">
               <div className="space-y-2 pb-6">
                 {tickets.map((ticket) => (
-                  <DailyTicketSection
-                    key={ticket.id}
-                    ticket={ticket}
-                    skills={skills}
-                    skillName={skillName}
-                    open={openTicketId === ticket.id}
-                    onOpenChange={(open) => setOpenTicketId(open ? ticket.id : undefined)}
-                    onAddTask={() => openTaskDialog(ticket.id)}
-                    onTicketChange={replaceTicket}
-                  />
+                  <div key={ticket.id} className="py-[1vw]">
+                    <DailyTicketSection
+                      ticket={ticket}
+                      skills={skills}
+                      skillName={skillName}
+                      open={openTicketId === ticket.id}
+                      onOpenChange={(open) => setOpenTicketId(open ? ticket.id : undefined)}
+                      onAddTask={() => openTaskDialog(ticket.id)}
+                      onTicketChange={replaceTicket}
+                    />
+                  </div>
                 ))}
               </div>
             </ScrollArea>
@@ -183,14 +257,16 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
               <Textarea value={taskDescription} onChange={(event) => setTaskDescription(event.target.value)} placeholder="Description" />
               <Select value={taskSkillId} onValueChange={(value) => setTaskSkillId(value ?? "")} required>
                 <SelectTrigger><SelectValue placeholder="Select a skill" /></SelectTrigger>
-                <SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent>
+                <SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem className="py-2 hover:bg-accent hover:py-3" key={skill.id} value={skill.id}><Badge>{skill.name}</Badge></SelectItem>)}</SelectContent>
               </Select>
             </div>
             <DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </main>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
@@ -212,12 +288,7 @@ function DailyTicketSection({
   onTicketChange: (ticket: DailyTicket) => void
 }) {
   return (
-    <Collapsible open={open} onOpenChange={onOpenChange} onKeyDown={(event) => {
-      if (event.metaKey && event.key.toLowerCase() === "d") {
-        event.preventDefault()
-        onAddTask()
-      }
-    }}>
+    <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsibleTrigger
         render={<Button variant="ghost" className="w-full cursor-pointer justify-between px-2" />}
       >
@@ -244,5 +315,5 @@ function TaskTable({ ticket, skills, skillName, onTicketChange }: { ticket: Dail
     try { onTicketChange(await deleteTask(ticket.id, taskId)); toast.add({ title: "Task deleted", type: "success" }) } catch (error) { toast.add({ title: "Could not delete task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
   }
 
-  return <div className="overflow-x-auto rounded-md border"><Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead>Skill</TableHead><TableHead className="w-10" /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TableRow key={task.id}><TableCell className="font-medium">{task.task_name}</TableCell><TableCell className="max-w-48 truncate">{task.task_description || "—"}</TableCell><TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(task.id, value as TaskStatus)}><SelectTrigger className="w-28"><Badge className={statusColors[task.status]}>{task.status}</Badge></SelectTrigger><SelectContent>{taskStatuses.map((status) => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><Select value={task.skill_id} onValueChange={(value) => value && changeSkill(task.id, value)}><SelectTrigger className="w-32"><Badge>{skillName(task.skill_id)}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><DropdownMenu><DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="cursor-pointer" />}><MoreHorizontal /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem variant="destructive" onClick={() => removeTask(task.id)}>Delete</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell></TableRow>)}</TableBody></Table></div>
+  return <div className="overflow-x-auto rounded-md border"><Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead>Skill</TableHead><TableHead className="w-10" /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TableRow key={task.id}><TableCell className="font-medium">{task.task_name}</TableCell><TableCell className="max-w-48 truncate">{task.task_description || "—"}</TableCell><TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(task.id, value as TaskStatus)}><SelectTrigger className="w-28"><SelectValue /></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{taskStatuses.map((status) => <SelectItem className="py-2 hover:bg-accent hover:py-3" key={status} value={status}><Badge className={statusColors[status]}>{status}</Badge></SelectItem>)}</SelectContent></Select></TableCell><TableCell><Select value={task.skill_id} onValueChange={(value) => value && changeSkill(task.id, value)}><SelectTrigger className="w-32"><SelectValue placeholder={skillName(task.skill_id)} /></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem className="py-2 hover:bg-accent hover:py-3" key={skill.id} value={skill.id}><Badge>{skill.name}</Badge></SelectItem>)}</SelectContent></Select></TableCell><TableCell><DropdownMenu><DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="cursor-pointer" />}><MoreHorizontal /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem variant="destructive" onClick={() => removeTask(task.id)}>Delete</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell></TableRow>)}</TableBody></Table></div>
 }
