@@ -3,7 +3,6 @@
 import * as React from "react"
 
 import { NavMain } from "./NavMain"
-import { NavProjects } from "./NavProjects"
 import { NavUser } from "./NavUser"
 import { TeamSwitcher } from "./TeamSwitcher"
 import {
@@ -13,7 +12,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIcon, BotIcon, BookOpenIcon, Settings2Icon, FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
+import { AudioLinesIcon, GalleryVerticalEndIcon, TerminalIcon, TerminalSquareIcon } from "lucide-react"
 
 // This is sample data.
 const data = {
