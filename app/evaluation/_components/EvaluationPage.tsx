@@ -42,7 +42,7 @@ export function EvaluationPage() {
 
   if (loading) return <EvaluationShell><Skeleton className="h-full w-full" /></EvaluationShell>
   if (!view) return <EvaluationShell><p className="text-sm text-muted-foreground">No daily ticket available.</p></EvaluationShell>
-  if (!evaluation) return <EvaluationShell><Card className="mx-auto mt-12 max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(date), "MMMM d, yyyy")}.</p><Button onClick={begin} className="cursor-pointer">Start evaluation</Button></CardContent></Card></EvaluationShell>
+  if (!evaluation) return <EvaluationShell><div className="flex h-full items-center justify-center"><Card className="w-full max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(date), "MMMM d, yyyy")}.</p><Button onClick={begin} className="cursor-pointer">Start evaluation</Button></CardContent></Card></div></EvaluationShell>
 
   return <EvaluationShell>{step === 1 && <OverallStep evaluation={evaluation} history={history} onNext={() => setStep(2)} />}{step === 2 && <SkillStep evaluation={evaluation} history={history} onBack={() => setStep(1)} onNext={() => setStep(3)} />}{step === 3 && <ReviewStep ticketId={view.today.ticket.id} evaluation={evaluation} onBack={() => setStep(2)} onNext={() => setStep(4)} />}{step === 4 && <FinishStep evaluation={evaluation} onFinish={finish} onBack={() => setStep(3)} />}</EvaluationShell>
 }
