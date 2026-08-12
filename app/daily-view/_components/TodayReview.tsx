@@ -24,9 +24,9 @@ export function TodayReview({ ticketId, review }: { ticketId: string; review: Da
   }
 
   return (
-    <Card>
+    <Card className="min-h-0 flex-1 overflow-hidden">
       <CardHeader><CardTitle>Today’s review</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="min-h-0 overflow-auto space-y-4">
         <Textarea value={mistakes} onChange={(event) => setMistakes(event.target.value)} placeholder="Mistakes" />
         <Textarea value={improvements} onChange={(event) => setImprovements(event.target.value)} placeholder="Improvements" />
         <Button onClick={save} disabled={saving} className="cursor-pointer">{saving ? "Saving..." : "Save review"}</Button>

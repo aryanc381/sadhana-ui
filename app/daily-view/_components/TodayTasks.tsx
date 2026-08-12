@@ -52,9 +52,9 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
   }
 
   return (
-    <Card className="min-w-0">
+    <Card className="min-h-0 min-w-0 flex flex-col overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between"><CardTitle>Today’s tasks</CardTitle><Button variant="outline" onClick={startTask} className="cursor-pointer">Add task <span className="text-muted-foreground">⌘ D</span></Button></CardHeader>
-      <CardContent className="min-w-0 overflow-x-auto">
+      <CardContent className="min-h-0 min-w-0 flex-1 overflow-auto">
         {ticket.tasks.length ? <Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No tasks today.</p>}
       </CardContent>
       <Dialog open={open} onOpenChange={setOpen}><DialogContent><form onSubmit={addTask}><DialogHeader><DialogTitle>Add task</DialogTitle></DialogHeader><div className="space-y-4 py-4"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Task name" required /><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" /><Select value={skillId} onValueChange={(value) => setSkillId(value ?? "")} required><SelectTrigger><Badge>{skills.find((skill) => skill.id === skillId)?.name ?? "Select skill"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></div><DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter></form></DialogContent></Dialog>

@@ -7,7 +7,7 @@ function list(value: string | string[]) {
 
 export function PreviousDayReview({ review }: { review: DailyReview }) {
   return (
-    <Card className="min-h-0">
+    <Card className="min-h-0 flex-1 overflow-hidden">
       <CardHeader><CardTitle>Previous day</CardTitle></CardHeader>
       <CardContent className="space-y-5">
         <ReviewList title="Mistakes" items={list(review.mistakes)} />
