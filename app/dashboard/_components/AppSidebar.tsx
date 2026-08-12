@@ -60,7 +60,7 @@ const data = {
       items: [
         {
           title: "Weekly Goals",
-          url: "#",
+          url: "/dashboard",
         },
         {
           title: "Daily View",
