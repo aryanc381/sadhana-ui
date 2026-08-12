@@ -2,11 +2,13 @@
 
 import * as React from "react"
 import type { DateRange } from "react-day-picker"
+import Link from "next/link"
 
 import { getSkills } from "@/lib/api/skills"
 import { getWeeklyGoals } from "@/lib/api/weekly-goals"
 import type { Skill, WeeklyGoal } from "@/lib/types/sadhana"
 import { Button } from "@/components/ui/button"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
@@ -74,7 +76,15 @@ export function Dashboard() {
         <header className="flex h-16 items-center border-b px-6">
           <div className="flex items-center gap-5">
             <SidebarTrigger />
-            <span className="text-[1vw]">Dashboard</span>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href="/dashboard" />}>Dashboard</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem><BreadcrumbPage>Weekly Goals</BreadcrumbPage></BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
         </header>
         <main className="min-w-0 flex-1 p-6">
