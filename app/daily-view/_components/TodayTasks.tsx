@@ -31,6 +31,17 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
     setName(""); setDescription(""); setSkillId(""); setOpen(true)
   }
 
+  React.useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if ((!event.metaKey && !event.ctrlKey) || event.key.toLowerCase() !== "d") return
+      event.preventDefault()
+      startTask()
+    }
+
+    window.addEventListener("keydown", handleShortcut)
+    return () => window.removeEventListener("keydown", handleShortcut)
+  }, [])
+
   async function addTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
@@ -42,9 +53,9 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
 
   return (
     <Card className="min-w-0">
-      <CardHeader className="flex-row items-center justify-between"><CardTitle>Today’s tasks</CardTitle><Button variant="outline" onClick={startTask} className="cursor-pointer">Add task</Button></CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between"><CardTitle>Today’s tasks</CardTitle><Button variant="outline" onClick={startTask} className="cursor-pointer">Add task <span className="text-muted-foreground">⌘ D</span></Button></CardHeader>
       <CardContent className="min-w-0 overflow-x-auto">
-        {ticket.tasks.length ? <Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Description</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No tasks today.</p>}
+        {ticket.tasks.length ? <Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No tasks today.</p>}
       </CardContent>
       <Dialog open={open} onOpenChange={setOpen}><DialogContent><form onSubmit={addTask}><DialogHeader><DialogTitle>Add task</DialogTitle></DialogHeader><div className="space-y-4 py-4"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Task name" required /><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" /><Select value={skillId} onValueChange={(value) => setSkillId(value ?? "")} required><SelectTrigger><Badge>{skills.find((skill) => skill.id === skillId)?.name ?? "Select skill"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></div><DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter></form></DialogContent></Dialog>
     </Card>
@@ -52,15 +63,31 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
 }
 
 function TaskRow({ task, ticketId, skills, onChange }: { task: DailyTask; ticketId: string; skills: Skill[]; onChange: (ticket: DailyTicket) => void }) {
+  const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState(task.task_name)
   const [description, setDescription] = React.useState(task.task_description)
+  const [skillId, setSkillId] = React.useState(task.skill_id)
+  const [status, setStatus] = React.useState(task.status)
+  const [editingName, setEditingName] = React.useState(false)
+  const [editingDescription, setEditingDescription] = React.useState(false)
+  const [editingSkill, setEditingSkill] = React.useState(false)
+  const [editingStatus, setEditingStatus] = React.useState(false)
 
-  async function saveText() {
-    try { onChange(await updateTaskText(ticketId, task.id, name, description)) } catch (error) { toast.add({ title: "Could not update task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
+  function openTask() {
+    setName(task.task_name); setDescription(task.task_description); setSkillId(task.skill_id); setStatus(task.status)
+    setEditingName(false); setEditingDescription(false); setEditingSkill(false); setEditingStatus(false); setOpen(true)
+  }
+  async function saveChanges() {
+    try {
+      let nextTicket = await updateTaskText(ticketId, task.id, name, description)
+      if (skillId !== task.skill_id) nextTicket = await updateTaskSkill(ticketId, task.id, skillId)
+      if (status !== task.status) nextTicket = await updateTaskStatus(ticketId, task.id, status)
+      onChange(nextTicket); setOpen(false); toast.add({ title: "Task updated", type: "success" })
+    } catch (error) { toast.add({ title: "Could not update task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
   }
   async function changeStatus(status: TaskStatus) { try { onChange(await updateTaskStatus(ticketId, task.id, status)) } catch (error) { toast.add({ title: "Could not update status", description: error instanceof Error ? error.message : "Try again", type: "error" }) } }
   async function changeSkill(skillId: string) { try { onChange(await updateTaskSkill(ticketId, task.id, skillId)) } catch (error) { toast.add({ title: "Could not update skill", description: error instanceof Error ? error.message : "Try again", type: "error" }) } }
   async function remove() { try { onChange(await deleteTask(ticketId, task.id)); toast.add({ title: "Task deleted", type: "success" }) } catch (error) { toast.add({ title: "Could not delete task", description: error instanceof Error ? error.message : "Try again", type: "error" }) } }
 
-  return <TableRow><TableCell><Input value={name} onChange={(event) => setName(event.target.value)} onBlur={saveText} /></TableCell><TableCell><Input value={description} onChange={(event) => setDescription(event.target.value)} onBlur={saveText} /></TableCell><TableCell><Select value={task.skill_id} onValueChange={(value) => value && changeSkill(value)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge>{skills.find((skill) => skill.id === task.skill_id)?.name ?? "Unknown"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(value as TaskStatus)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className={statusColors[task.status]}>{task.status}</Badge></SelectTrigger><SelectContent>{statuses.map((status) => <SelectItem key={status} value={status}><Badge className={statusColors[status]}>{status}</Badge></SelectItem>)}</SelectContent></Select></TableCell><TableCell><Button variant="ghost" onClick={remove} className="cursor-pointer">Delete</Button></TableCell></TableRow>
+  return <><TableRow onClick={openTask} className="cursor-pointer"><TableCell>{task.task_name}</TableCell><TableCell><Badge>{skills.find((skill) => skill.id === task.skill_id)?.name ?? "Unknown"}</Badge></TableCell><TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(value as TaskStatus)}><SelectTrigger onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className={`pointer-events-none ${statusColors[task.status]}`}>{task.status}</Badge></SelectTrigger><SelectContent>{statuses.map((status) => <SelectItem key={status} value={status}><Badge className={`pointer-events-none ${statusColors[status]}`}>{status}</Badge></SelectItem>)}</SelectContent></Select></TableCell><TableCell><Button variant="ghost" onClick={(event) => { event.stopPropagation(); remove() }} className="cursor-pointer text-muted-foreground">Delete</Button></TableCell></TableRow><Dialog open={open} onOpenChange={setOpen}><DialogContent onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && event.target instanceof HTMLElement && event.target.tagName !== "BUTTON") { event.preventDefault(); void saveChanges() } }}><DialogHeader><DialogTitle>Task</DialogTitle></DialogHeader><div className="space-y-5 py-4"><div className="space-y-2"><p className="text-sm font-medium">Task name</p><div onDoubleClick={() => setEditingName(true)}>{editingName ? <Input autoFocus value={name} onChange={(event) => setName(event.target.value)} /> : <p className="cursor-text">{name}</p>}</div></div><div className="space-y-2"><p className="text-sm font-medium">Description</p><div onDoubleClick={() => setEditingDescription(true)} className="rounded-md border px-3 py-2">{editingDescription ? <Textarea autoFocus value={description} onChange={(event) => setDescription(event.target.value)} /> : <p className="min-h-20 cursor-text whitespace-pre-wrap text-sm text-muted-foreground">{description || "No description"}</p>}</div></div><div className="space-y-2"><p className="text-sm font-medium">Skill</p><div onDoubleClick={() => setEditingSkill(true)}>{editingSkill ? <Select value={skillId} onValueChange={(value) => { if (value) { setSkillId(value); setEditingSkill(false) } }}><SelectTrigger><Badge className="pointer-events-none">{skills.find((skill) => skill.id === skillId)?.name ?? "Unknown"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select> : <Badge className="cursor-text">{skills.find((skill) => skill.id === skillId)?.name ?? "Unknown"}</Badge>}</div></div><div className="space-y-2"><p className="text-sm font-medium">Status</p><div onDoubleClick={() => setEditingStatus(true)}>{editingStatus ? <Select value={status} onValueChange={(value) => { if (value) { setStatus(value as TaskStatus); setEditingStatus(false) } }}><SelectTrigger><Badge className={`pointer-events-none ${statusColors[status]}`}>{status}</Badge></SelectTrigger><SelectContent>{statuses.map((value) => <SelectItem key={value} value={value}><Badge className={`pointer-events-none ${statusColors[value]}`}>{value}</Badge></SelectItem>)}</SelectContent></Select> : <Badge className={`pointer-events-none ${statusColors[status]}`}>{status}</Badge>}</div></div></div></DialogContent></Dialog></>
 }
