@@ -63,6 +63,26 @@ export function updateTaskStatus(
   })
 }
 
+export function updateTaskText(
+  ticketId: string,
+  taskId: string,
+  taskName: string,
+  taskDescription: string,
+) {
+  return updateTaskRequest(`/daily-tickets/${ticketId}/tasks/${taskId}`, {
+    task_name: taskName,
+    task_description: taskDescription,
+  })
+}
+
+async function updateTaskRequest(path: string, body: Record<string, string>) {
+  const { ticket } = await request<{ ticket: DailyTicket }>(path, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  })
+  return ticket
+}
+
 export async function deleteTask(ticketId: string, taskId: string) {
   const { ticket } = await request<{ ticket: DailyTicket }>(
     `/daily-tickets/${ticketId}/tasks/${taskId}`,

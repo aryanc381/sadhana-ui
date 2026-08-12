@@ -64,7 +64,7 @@ const data = {
         },
         {
           title: "Daily View",
-          url: "#",
+          url: "/daily-view",
         },
         {
           title: "Evaluation",
