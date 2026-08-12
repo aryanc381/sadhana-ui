@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { AppSidebar } from "@/app/dashboard/_components/AppSidebar"
 import { getDailyView } from "@/lib/api/daily-view"
-import { finishEvaluation, getEvaluationHistory, startEvaluation, updateEvaluationReview } from "@/lib/api/evaluation"
+import { finishEvaluation, getCompletedEvaluations, getEvaluationHistory, startEvaluation, updateEvaluationReview, type CompletedEvaluation } from "@/lib/api/evaluation"
 import type { DailyViewData, Evaluation, EvaluationHistory } from "@/lib/types/sadhana"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,8 @@ export function EvaluationPage() {
   const [history, setHistory] = React.useState<EvaluationHistory[]>([])
   const [step, setStep] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
+  const [previous, setPrevious] = React.useState<CompletedEvaluation[]>()
+  const [selectedPrevious, setSelectedPrevious] = React.useState<CompletedEvaluation>()
 
   React.useEffect(() => {
     getDailyView(date).then(setView).catch(showError).finally(() => setLoading(false))
@@ -42,9 +44,19 @@ export function EvaluationPage() {
 
   if (loading) return <EvaluationShell><Skeleton className="h-full w-full" /></EvaluationShell>
   if (!view) return <EvaluationShell><p className="text-sm text-muted-foreground">No daily ticket available.</p></EvaluationShell>
-  if (!evaluation) return <EvaluationShell><div className="flex h-full items-center justify-center"><Card className="w-full max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(date), "MMMM d, yyyy")}.</p><Button onClick={begin} className="cursor-pointer">Start evaluation</Button></CardContent></Card></div></EvaluationShell>
+  if (!evaluation) return <EvaluationShell><StartEvaluation onStart={begin} onPrevious={() => getCompletedEvaluations().then((result) => setPrevious(result.evaluations)).catch(showError)} onSelect={setSelectedPrevious} previous={previous} /></EvaluationShell>
+
+  if (selectedPrevious) return <EvaluationShell><PreviousEvaluation evaluation={selectedPrevious} onBack={() => setSelectedPrevious(undefined)} /></EvaluationShell>
 
   return <EvaluationShell>{step === 1 && <OverallStep evaluation={evaluation} history={history} onNext={() => setStep(2)} />}{step === 2 && <SkillStep evaluation={evaluation} history={history} onBack={() => setStep(1)} onNext={() => setStep(3)} />}{step === 3 && <ReviewStep ticketId={view.today.ticket.id} evaluation={evaluation} onBack={() => setStep(2)} onNext={() => setStep(4)} />}{step === 4 && <FinishStep evaluation={evaluation} onFinish={finish} onBack={() => setStep(3)} />}</EvaluationShell>
+}
+
+function StartEvaluation({ onStart, onPrevious, onSelect, previous }: { onStart: () => void; onPrevious: () => void; onSelect: (evaluation: CompletedEvaluation) => void; previous?: CompletedEvaluation[] }) {
+  return <div className="flex h-full items-center justify-center"><Card className="w-full max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(), "MMMM d, yyyy")}.</p><div className="flex flex-wrap gap-2"><Button onClick={onStart} className="cursor-pointer">Start evaluation</Button><Button variant="outline" onClick={onPrevious} className="cursor-pointer">Previous evaluations</Button></div>{previous?.length ? <div className="space-y-2 border-t pt-4">{previous.map((item) => <Button key={item.ticket_id} variant="ghost" className="block w-full justify-start" onClick={() => onSelect(item)}>{format(new Date(item.date), "MMMM d, yyyy")}</Button>)}</div> : null}</CardContent></Card></div>
+}
+
+function PreviousEvaluation({ evaluation, onBack }: { evaluation: CompletedEvaluation; onBack: () => void }) {
+  return <section className="mx-auto max-w-6xl space-y-4"><div className="flex items-center justify-between"><div><h1 className="text-2xl font-semibold">Evaluation</h1><p className="text-muted-foreground">{format(new Date(evaluation.date), "MMMM d, yyyy")}</p></div><Button variant="outline" onClick={onBack}>Back</Button></div><MetricCards metric={evaluation.evaluation.metrics.overall} /><EvaluationCharts history={[{ date: evaluation.date, metrics: evaluation.evaluation.metrics }]} /><Card><CardHeader><CardTitle>Skill-wise metrics</CardTitle></CardHeader><CardContent className="space-y-3">{evaluation.evaluation.metrics.skill.map((skill) => <div key={skill.skillId} className="flex items-center justify-between rounded-md border p-3"><span>Skill {skill.skillId.slice(-4)}</span><span>{Math.round(skill.score * 100)}% · {skill.verdict}</span></div>)}</CardContent></Card><Card><CardHeader><CardTitle>Mistakes and improvements</CardTitle></CardHeader><CardContent className="space-y-3"><div><h3 className="font-medium">Mistakes</h3><p className="whitespace-pre-wrap text-muted-foreground">{evaluation.evaluation.eval_loop[0]?.mistakes || "Nothing recorded."}</p></div><div><h3 className="font-medium">Improvements</h3><p className="whitespace-pre-wrap text-muted-foreground">{evaluation.evaluation.eval_loop[0]?.improvements || "Nothing recorded."}</p></div></CardContent></Card></section>
 }
 
 function EvaluationShell({ children }: { children: React.ReactNode }) {

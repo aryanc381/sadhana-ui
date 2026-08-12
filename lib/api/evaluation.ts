@@ -20,3 +20,13 @@ export function updateEvaluationReview(ticketId: string, review: EvaluationRevie
 export function finishEvaluation(ticketId: string) {
   return request<{ evaluation: Evaluation }>(`/daily-tickets/${ticketId}/evaluation/finish`, { method: "POST" })
 }
+
+export function getCompletedEvaluations() {
+  return request<{ evaluations: CompletedEvaluation[] }>("/evaluations/completed")
+}
+
+export type CompletedEvaluation = {
+  ticket_id: string
+  date: string
+  evaluation: Evaluation
+}
