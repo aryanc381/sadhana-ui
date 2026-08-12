@@ -20,7 +20,6 @@ export function DailyView() {
   const [view, setView] = React.useState<DailyViewData>()
   const [skills, setSkills] = React.useState<Skill[]>([])
   const [loading, setLoading] = React.useState(true)
-  const openTaskRef = React.useRef<(() => void) | null>(null)
   const date = format(new Date(), "yyyy-MM-dd")
 
   React.useEffect(() => {
@@ -34,20 +33,5 @@ export function DailyView() {
     setView({ ...view, today: { ...view.today, ticket } })
   }
 
-  const registerOpenTask = React.useCallback((openTask: () => void) => {
-    openTaskRef.current = openTask
-  }, [])
-
-  React.useEffect(() => {
-    function handleShortcut(event: KeyboardEvent) {
-      if ((!event.metaKey && !event.ctrlKey) || event.key.toLowerCase() !== "d") return
-      event.preventDefault()
-      openTaskRef.current?.()
-    }
-
-    window.addEventListener("keydown", handleShortcut)
-    return () => window.removeEventListener("keydown", handleShortcut)
-  }, [])
-
-  return <SidebarProvider><AppSidebar /><SidebarInset className="min-w-0 overflow-x-hidden"><header className="flex h-16 items-center border-b px-6"><div className="flex items-center gap-5"><SidebarTrigger /><Breadcrumb><BreadcrumbList><BreadcrumbItem><BreadcrumbLink render={<Link href="/dashboard" />}>Dashboard</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Daily View</BreadcrumbPage></BreadcrumbItem></BreadcrumbList></Breadcrumb></div></header><main className="min-w-0 flex-1 p-6">{loading ? <Skeleton className="h-[40rem] w-full" /> : !view ? <p className="text-sm text-muted-foreground">No daily view available.</p> : <div className="grid min-w-0 gap-6 lg:grid-cols-[1fr_2fr_1fr]"><div className="space-y-6"><PreviousDayReview review={view.previous_day} /><TodayReview ticketId={view.today.ticket.id} review={view.today.review} /></div><TodayTasks ticket={view.today.ticket} skills={skills} onChange={updateTicket} onShortcut={registerOpenTask} /><div className="space-y-6"><Card className="h-40"><CardHeader><CardTitle>Calendar</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">Calendar integration coming next.</CardContent></Card><Card className="min-h-80"><CardHeader><CardTitle>Calendar slots</CardTitle></CardHeader></Card></div></div>}</main></SidebarInset></SidebarProvider>
+  return <SidebarProvider><AppSidebar /><SidebarInset className="min-w-0 overflow-x-hidden"><header className="flex h-16 items-center border-b px-6"><div className="flex items-center gap-5"><SidebarTrigger /><Breadcrumb><BreadcrumbList><BreadcrumbItem><BreadcrumbLink render={<Link href="/dashboard" />}>Dashboard</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Daily View</BreadcrumbPage></BreadcrumbItem></BreadcrumbList></Breadcrumb></div></header><main className="min-w-0 flex-1 p-6">{loading ? <Skeleton className="h-[40rem] w-full" /> : !view ? <p className="text-sm text-muted-foreground">No daily view available.</p> : <div className="grid min-w-0 gap-6 lg:grid-cols-[1fr_2fr_1fr]"><div className="space-y-6"><PreviousDayReview review={view.previous_day} /><TodayReview ticketId={view.today.ticket.id} review={view.today.review} /></div><TodayTasks ticket={view.today.ticket} skills={skills} onChange={updateTicket} /><div className="space-y-6"><Card className="h-40"><CardHeader><CardTitle>Calendar</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">Calendar integration coming next.</CardContent></Card><Card className="min-h-80"><CardHeader><CardTitle>Calendar slots</CardTitle></CardHeader></Card></div></div>}</main></SidebarInset></SidebarProvider>
 }

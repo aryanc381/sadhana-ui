@@ -21,15 +21,15 @@ const statusColors: Record<TaskStatus, string> = {
   missed: "bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700 dark:bg-red-950 dark:text-red-300",
 }
 
-export function TodayTasks({ ticket, skills, onChange, onShortcut }: { ticket: DailyTicket; skills: Skill[]; onChange: (ticket: DailyTicket) => void; onShortcut?: (openTask: () => void) => void }) {
+export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; skills: Skill[]; onChange: (ticket: DailyTicket) => void }) {
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
   const [description, setDescription] = React.useState("")
   const [skillId, setSkillId] = React.useState("")
 
-  function startTask() {
+  const startTask = React.useCallback(() => {
     setName(""); setDescription(""); setSkillId(""); setOpen(true)
-  }
+  }, [])
 
   React.useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
@@ -38,9 +38,9 @@ export function TodayTasks({ ticket, skills, onChange, onShortcut }: { ticket: D
       startTask()
     }
 
-    window.addEventListener("keydown", handleShortcut)
-    return () => window.removeEventListener("keydown", handleShortcut)
-  }, [])
+    document.addEventListener("keydown", handleShortcut, true)
+    return () => document.removeEventListener("keydown", handleShortcut, true)
+  }, [startTask])
 
   async function addTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
