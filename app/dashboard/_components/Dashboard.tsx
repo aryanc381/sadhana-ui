@@ -123,7 +123,6 @@ export function Dashboard() {
             </Button>
           </div>
           <ChartAreaInteractive
-            dateRange={dateRange}
             goalName={selectedGoal?.name}
           />
           <WeeklyGoalCards goals={goals} />

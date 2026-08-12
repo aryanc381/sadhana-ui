@@ -25,8 +25,19 @@ export function getCompletedEvaluations() {
   return request<{ evaluations: CompletedEvaluation[] }>("/evaluations/completed")
 }
 
+export function getEvaluationProgress(from: string, to: string) {
+  return request<{ progress: EvaluationProgress[] }>(`/evaluations/progress?from=${from}&to=${to}`)
+}
+
 export type CompletedEvaluation = {
   ticket_id: string
   date: string
   evaluation: Evaluation
+}
+
+export type EvaluationProgress = {
+  date: string
+  total_tasks: number
+  completed_tasks: number
+  pending_tasks: number
 }
