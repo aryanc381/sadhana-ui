@@ -9,6 +9,7 @@ import { finishEvaluation, getCompletedEvaluations, getEvaluationHistory, startE
 import type { DailyViewData, Evaluation, EvaluationHistory } from "@/lib/types/sadhana"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -44,15 +45,16 @@ export function EvaluationPage() {
 
   if (loading) return <EvaluationShell><Skeleton className="h-full w-full" /></EvaluationShell>
   if (!view) return <EvaluationShell><p className="text-sm text-muted-foreground">No daily ticket available.</p></EvaluationShell>
-  if (!evaluation) return <EvaluationShell><StartEvaluation onStart={begin} onPrevious={() => getCompletedEvaluations().then((result) => setPrevious(result.evaluations)).catch(showError)} onSelect={setSelectedPrevious} previous={previous} /></EvaluationShell>
-
   if (selectedPrevious) return <EvaluationShell><PreviousEvaluation evaluation={selectedPrevious} onBack={() => setSelectedPrevious(undefined)} /></EvaluationShell>
+  if (!evaluation) return <EvaluationShell><StartEvaluation onStart={begin} onPrevious={() => getCompletedEvaluations().then((result) => setPrevious(result.evaluations)).catch(showError)} onSelect={setSelectedPrevious} previous={previous} /></EvaluationShell>
 
   return <EvaluationShell>{step === 1 && <OverallStep evaluation={evaluation} history={history} onNext={() => setStep(2)} />}{step === 2 && <SkillStep evaluation={evaluation} history={history} onBack={() => setStep(1)} onNext={() => setStep(3)} />}{step === 3 && <ReviewStep ticketId={view.today.ticket.id} evaluation={evaluation} onBack={() => setStep(2)} onNext={() => setStep(4)} />}{step === 4 && <FinishStep evaluation={evaluation} onFinish={finish} onBack={() => setStep(3)} />}</EvaluationShell>
 }
 
 function StartEvaluation({ onStart, onPrevious, onSelect, previous }: { onStart: () => void; onPrevious: () => void; onSelect: (evaluation: CompletedEvaluation) => void; previous?: CompletedEvaluation[] }) {
-  return <div className="flex h-full items-center justify-center"><Card className="w-full max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(), "MMMM d, yyyy")}.</p><div className="flex flex-wrap gap-2"><Button onClick={onStart} className="cursor-pointer">Start evaluation</Button><Button variant="outline" onClick={onPrevious} className="cursor-pointer">Previous evaluations</Button></div>{previous?.length ? <div className="space-y-2 border-t pt-4">{previous.map((item) => <Button key={item.ticket_id} variant="ghost" className="block w-full justify-start" onClick={() => onSelect(item)}>{format(new Date(item.date), "MMMM d, yyyy")}</Button>)}</div> : null}</CardContent></Card></div>
+  const [open, setOpen] = React.useState(false)
+  function select(item: CompletedEvaluation) { setOpen(false); onSelect(item) }
+  return <div className="flex h-full items-center justify-center"><Card className="w-full max-w-2xl"><CardHeader><CardTitle>Good evening</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-muted-foreground">Let’s look back at {format(new Date(), "MMMM d, yyyy")}.</p><div className="flex flex-wrap gap-2"><Button onClick={onStart} className="cursor-pointer">Start evaluation</Button><Button variant="outline" onClick={() => { onPrevious(); setOpen(true) }} className="cursor-pointer">Previous evaluations</Button></div><Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>Previous evaluations</DialogTitle></DialogHeader>{previous?.length ? <div className="space-y-2">{previous.map((item) => <Button key={item.ticket_id} variant="outline" className="w-full justify-start" onClick={() => select(item)}>{format(new Date(item.date), "MMMM d, yyyy")}</Button>)}</div> : <p className="text-sm text-muted-foreground">No completed evaluations yet.</p>}</DialogContent></Dialog></CardContent></Card></div>
 }
 
 function PreviousEvaluation({ evaluation, onBack }: { evaluation: CompletedEvaluation; onBack: () => void }) {

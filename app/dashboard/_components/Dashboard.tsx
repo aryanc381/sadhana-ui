@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { addDays, startOfDay } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import Link from "next/link"
 
@@ -30,9 +31,13 @@ import { DatePickerWithRange } from "./DatePickerWithRange"
 import { WeeklyGoalCards } from "./WeeklyGoalCards"
 
 export function Dashboard() {
+  const today = startOfDay(new Date())
   const [skills, setSkills] = React.useState<Skill[]>([])
   const [goals, setGoals] = React.useState<WeeklyGoal[]>([])
-  const [dateRange, setDateRange] = React.useState<DateRange>()
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: addDays(today, -3),
+    to: addDays(today, 3),
+  })
   const [selectedGoalId, setSelectedGoalId] = React.useState("")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
 
@@ -122,9 +127,7 @@ export function Dashboard() {
               Create
             </Button>
           </div>
-          <ChartAreaInteractive
-            goalName={selectedGoal?.name}
-          />
+          <ChartAreaInteractive dateRange={dateRange} goalName={selectedGoal?.name} />
           <WeeklyGoalCards goals={goals} />
         </main>
       </SidebarInset>
