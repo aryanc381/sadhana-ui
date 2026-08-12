@@ -60,11 +60,11 @@ const data = {
       items: [
         {
           title: "Weekly Goals",
-          url: "#",
+          url: "/dashboard",
         },
         {
           title: "Daily View",
-          url: "#",
+          url: "/daily-view",
         },
         {
           title: "Evaluation",

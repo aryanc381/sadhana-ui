@@ -31,6 +31,20 @@ export type DailyTicket = {
   tasks: DailyTask[]
 }
 
+export type DailyReview = {
+  mistakes: string | string[]
+  improvements: string | string[]
+}
+
+export type DailyViewData = {
+  date: string
+  previous_day: DailyReview
+  today: {
+    ticket: DailyTicket
+    review: DailyReview
+  }
+}
+
 export type CreateSkillInput = Pick<Skill, "name" | "description">
 
 export type CreateWeeklyGoalInput = {
