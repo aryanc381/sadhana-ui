@@ -41,7 +41,6 @@ export function TodayTasks({ ticket, skills, onChange, onShortcut }: { ticket: D
     window.addEventListener("keydown", handleShortcut)
     return () => window.removeEventListener("keydown", handleShortcut)
   }, [])
-  }, [])
 
   async function addTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
