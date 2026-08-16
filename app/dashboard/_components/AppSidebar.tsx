@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { getMe } from "@/lib/api/auth"
 
 import { NavMain } from "./NavMain"
 import { NavUser } from "./NavUser"
@@ -16,11 +17,6 @@ import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIco
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Acme Inc",
@@ -175,6 +171,12 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user, setUser] = React.useState({ name: "", email: "", avatar: "" })
+
+  React.useEffect(() => {
+    getMe().then(({ customer }) => setUser({ ...customer, avatar: "" })).catch(() => undefined)
+  }, [])
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -185,7 +187,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
