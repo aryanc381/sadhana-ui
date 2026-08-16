@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    const backendUrl = process.env.SADHANA_API_URL ?? "http://localhost:3000"
+    const backendUrl = process.env.SADHANA_API_URL ?? "http://localhost:4000"
 
     return [
       {
