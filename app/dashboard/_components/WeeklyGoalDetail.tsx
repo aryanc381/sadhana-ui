@@ -16,6 +16,7 @@ import {
   updateRoughIdea,
   updateTaskSkill,
   updateTaskStatus,
+  updateTaskText,
 } from "@/lib/api/daily-tickets"
 import { getWeeklyGoals } from "@/lib/api/weekly-goals"
 import type {
@@ -36,14 +37,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -51,7 +44,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
 import { AppSidebar } from "./AppSidebar"
 import { CreateSkillDialog } from "./CreateSkillDialog"
@@ -70,11 +62,13 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
   const [skills, setSkills] = React.useState<Skill[]>([])
   const [roughIdea, setRoughIdea] = React.useState("")
   const [openTicketId, setOpenTicketId] = React.useState<string>()
-  const [taskTicketId, setTaskTicketId] = React.useState<string>()
-  const [isTaskOpen, setIsTaskOpen] = React.useState(false)
-  const [taskName, setTaskName] = React.useState("")
-  const [taskDescription, setTaskDescription] = React.useState("")
-  const [taskSkillId, setTaskSkillId] = React.useState("")
+  const [draft, setDraft] = React.useState<{
+    ticketId: string
+    taskName: string
+    taskDescription: string
+    skillId: string
+  }>()
+  const [isTaskSaving, setIsTaskSaving] = React.useState(false)
   const [isSkillOpen, setIsSkillOpen] = React.useState(false)
   const editorRef = React.useRef<Editor | null>(null)
   const editor = useEditor({
@@ -126,7 +120,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
       const selectedTicketId = openTicketId ?? tickets[0]?.id
       if (!selectedTicketId) return
       event.preventDefault()
-      openTaskDialog(selectedTicketId)
+      openTaskRow(selectedTicketId)
     }
 
     window.addEventListener("keydown", handleShortcut, true)
@@ -146,23 +140,25 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
     }
   }
 
-  function openTaskDialog(ticketId: string) {
-    setTaskTicketId(ticketId)
-    setTaskName("")
-    setTaskDescription("")
-    setTaskSkillId("")
-    setIsTaskOpen(true)
+  function openTaskRow(ticketId: string) {
+    setDraft({ ticketId, taskName: "", taskDescription: "", skillId: "" })
   }
 
-  async function submitTask(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!taskTicketId || !taskSkillId) return
+  async function submitTask() {
+    if (!draft?.taskName.trim() || !draft.skillId || isTaskSaving) return
+    setIsTaskSaving(true)
     try {
-      replaceTicket(await createTask(taskTicketId, { skill_id: taskSkillId, task_name: taskName, task_description: taskDescription }))
-      setIsTaskOpen(false)
+      replaceTicket(await createTask(draft.ticketId, {
+        skill_id: draft.skillId,
+        task_name: draft.taskName.trim(),
+        task_description: draft.taskDescription,
+      }))
+      setDraft(undefined)
       toast.add({ title: "Task created", type: "success" })
     } catch (error) {
       toast.add({ title: "Could not create task", description: error instanceof Error ? error.message : "Try again", type: "error" })
+    } finally {
+      setIsTaskSaving(false)
     }
   }
 
@@ -172,9 +168,8 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
 
   function handleSkillCreated(skill: Skill) {
     setSkills((current) => [...current, skill])
-    setTaskSkillId(skill.id)
     setIsSkillOpen(false)
-    setIsTaskOpen(true)
+    setDraft((current) => current ? { ...current, skillId: skill.id } : current)
   }
 
   if (!goal) return <div className="p-6 text-sm text-muted-foreground">Loading goal...</div>
@@ -243,8 +238,13 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
                       skillName={skillName}
                       open={openTicketId === ticket.id}
                       onOpenChange={(open) => setOpenTicketId(open ? ticket.id : undefined)}
-                      onAddTask={() => openTaskDialog(ticket.id)}
+                      onAddTask={() => openTaskRow(ticket.id)}
                       onTicketChange={replaceTicket}
+                      draft={draft?.ticketId === ticket.id ? draft : undefined}
+                      onDraftChange={(changes) => setDraft((current) => current ? { ...current, ...changes } : current)}
+                      onDraftSave={submitTask}
+                      onDraftCancel={() => setDraft(undefined)}
+                      onCreateSkill={() => setIsSkillOpen(true)}
                     />
                   </div>
                 ))}
@@ -253,39 +253,6 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
           </CardContent>
         </Card>
       </div>
-      <Dialog open={isTaskOpen} onOpenChange={setIsTaskOpen}>
-        <DialogContent>
-          <form onSubmit={submitTask}>
-            <DialogHeader>
-              <DialogTitle>New task</DialogTitle>
-              <DialogDescription>Add a task and assign it to a skill.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Input value={taskName} onChange={(event) => setTaskName(event.target.value)} placeholder="Task name" required />
-              <Textarea value={taskDescription} onChange={(event) => setTaskDescription(event.target.value)} placeholder="Description" />
-              <Select
-                value={taskSkillId}
-                onValueChange={(value) => {
-                  if (value === "create-new-skill") {
-                    setIsTaskOpen(false)
-                    setIsSkillOpen(true)
-                    return
-                  }
-                  setTaskSkillId(value ?? "")
-                }}
-                required
-              >
-                <SelectTrigger><Badge className="pointer-events-none bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground">{taskSkillId ? skillName(taskSkillId) : "Select a skill"}</Badge></SelectTrigger>
-                <SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>
-                  {skills.map((skill) => <SelectItem className="py-2" key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}
-                  <SelectItem className="py-2" value="create-new-skill">+ Create new skill</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
       <CreateSkillDialog
         open={isSkillOpen}
         onOpenChange={setIsSkillOpen}
@@ -305,6 +272,11 @@ function DailyTicketSection({
   onOpenChange,
   onAddTask,
   onTicketChange,
+  draft,
+  onDraftChange,
+  onDraftSave,
+  onDraftCancel,
+  onCreateSkill,
 }: {
   ticket: DailyTicket
   skills: Skill[]
@@ -313,6 +285,11 @@ function DailyTicketSection({
   onOpenChange: (open: boolean) => void
   onAddTask: () => void
   onTicketChange: (ticket: DailyTicket) => void
+  draft?: { ticketId: string; taskName: string; taskDescription: string; skillId: string }
+  onDraftChange: (changes: Partial<{ taskName: string; taskDescription: string; skillId: string }>) => void
+  onDraftSave: () => void
+  onDraftCancel: () => void
+  onCreateSkill: () => void
 }) {
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -324,14 +301,56 @@ function DailyTicketSection({
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3 px-2 pt-2">
         <Separator />
-        {ticket.tasks.length ? <TaskTable ticket={ticket} skills={skills} skillName={skillName} onTicketChange={onTicketChange} /> : <p className="py-3 text-sm text-muted-foreground">No tasks yet.</p>}
+        {ticket.tasks.length || draft
+          ? <TaskTable ticket={ticket} skills={skills} skillName={skillName} onTicketChange={onTicketChange} draft={draft} onDraftChange={onDraftChange} onDraftSave={onDraftSave} onDraftCancel={onDraftCancel} onCreateSkill={onCreateSkill} />
+          : <p className="py-3 text-sm text-muted-foreground">No tasks yet.</p>}
         <Button variant="outline" size="sm" className="cursor-pointer" onClick={onAddTask}><Plus /> Add task <span className="text-muted-foreground">⌘ D</span></Button>
       </CollapsibleContent>
     </Collapsible>
   )
 }
 
-function TaskTable({ ticket, skills, skillName, onTicketChange }: { ticket: DailyTicket; skills: Skill[]; skillName: (skillId: string) => string; onTicketChange: (ticket: DailyTicket) => void }) {
+function TaskTable({ ticket, skills, skillName, onTicketChange, draft, onDraftChange, onDraftSave, onDraftCancel, onCreateSkill }: {
+  ticket: DailyTicket
+  skills: Skill[]
+  skillName: (skillId: string) => string
+  onTicketChange: (ticket: DailyTicket) => void
+  draft?: { ticketId: string; taskName: string; taskDescription: string; skillId: string }
+  onDraftChange: (changes: Partial<{ taskName: string; taskDescription: string; skillId: string }>) => void
+  onDraftSave: () => void
+  onDraftCancel: () => void
+  onCreateSkill: () => void
+}) {
+  const [editingTaskId, setEditingTaskId] = React.useState<string>()
+  const [editName, setEditName] = React.useState("")
+  const [editDescription, setEditDescription] = React.useState("")
+  const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function startEditing(task: DailyTicket["tasks"][number]) {
+    if (copyTimer.current) clearTimeout(copyTimer.current)
+    setEditingTaskId(task.id)
+    setEditName(task.task_name)
+    setEditDescription(task.task_description)
+  }
+
+  function copyTask(task: DailyTicket["tasks"][number]) {
+    copyTimer.current = setTimeout(() => {
+      navigator.clipboard.writeText([task.task_name, task.task_description].filter(Boolean).join("\n"))
+        .then(() => toast.add({ title: "Task copied", type: "success" }))
+        .catch(() => toast.add({ title: "Could not copy task", type: "error" }))
+    }, 200)
+  }
+
+  async function saveEdit(taskId: string) {
+    if (!editName.trim()) return
+    try {
+      onTicketChange(await updateTaskText(ticket.id, taskId, editName.trim(), editDescription))
+      setEditingTaskId(undefined)
+    } catch (error) {
+      toast.add({ title: "Could not update task", description: error instanceof Error ? error.message : "Try again", type: "error" })
+    }
+  }
+
   async function changeStatus(taskId: string, status: TaskStatus) {
     try { onTicketChange(await updateTaskStatus(ticket.id, taskId, status)) } catch (error) { toast.add({ title: "Could not update status", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
   }
@@ -342,5 +361,22 @@ function TaskTable({ ticket, skills, skillName, onTicketChange }: { ticket: Dail
     try { onTicketChange(await deleteTask(ticket.id, taskId)); toast.add({ title: "Task deleted", type: "success" }) } catch (error) { toast.add({ title: "Could not delete task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
   }
 
-  return <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead>Skill</TableHead><TableHead className="w-10" /></TableRow></TableHeader><TableBody>{ticket.tasks.map((task) => <TableRow key={task.id} className="[&>td]:pt-3"><TableCell className="font-medium">{task.task_name}</TableCell><TableCell className="max-w-48 truncate">{task.task_description || "—"}</TableCell><TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(task.id, value as TaskStatus)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className={`pointer-events-none ${statusColors[task.status]}`}>{task.status}</Badge></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{taskStatuses.map((status) => <SelectItem className="py-2" key={status} value={status}>{status}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><Select value={task.skill_id} onValueChange={(value) => value && changeSkill(task.id, value)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className="pointer-events-none bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground">{skillName(task.skill_id)}</Badge></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem className="py-2" key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><DropdownMenu><DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="cursor-pointer" />}><MoreHorizontal /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem variant="destructive" onClick={() => removeTask(task.id)}>Delete</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell></TableRow>)}</TableBody></Table></div>
+  return <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead>Skill</TableHead><TableHead className="w-10" /></TableRow></TableHeader><TableBody>
+    {ticket.tasks.map((task) => <TableRow key={task.id} className="[&>td]:pt-3">
+      <TableCell className="font-medium" onClick={() => editingTaskId === task.id ? undefined : copyTask(task)} onDoubleClick={() => startEditing(task)}>
+        {editingTaskId === task.id
+          ? <Input autoFocus value={editName} onChange={(event) => setEditName(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? saveEdit(task.id) : event.key === "Escape" && setEditingTaskId(undefined)} />
+          : task.task_name}
+      </TableCell>
+      <TableCell className="max-w-48 truncate" onDoubleClick={() => startEditing(task)}>
+        {editingTaskId === task.id
+          ? <Input value={editDescription} onChange={(event) => setEditDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? saveEdit(task.id) : event.key === "Escape" && setEditingTaskId(undefined)} />
+          : task.task_description || "—"}
+      </TableCell>
+      <TableCell><Select value={task.status} onValueChange={(value) => value && changeStatus(task.id, value as TaskStatus)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className={`pointer-events-none ${statusColors[task.status]}`}>{task.status}</Badge></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{taskStatuses.map((status) => <SelectItem className="py-2" key={status} value={status}>{status}</SelectItem>)}</SelectContent></Select></TableCell>
+      <TableCell><Select value={task.skill_id} onValueChange={(value) => value && changeSkill(task.id, value)}><SelectTrigger className="h-auto w-fit border-0 bg-transparent p-0 shadow-none hover:bg-transparent [&>svg]:hidden"><Badge className="pointer-events-none bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground">{skillName(task.skill_id)}</Badge></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem className="py-2" key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></TableCell>
+      <TableCell><DropdownMenu><DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="cursor-pointer" />}><MoreHorizontal /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem variant="destructive" onClick={() => removeTask(task.id)}>Delete</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell>
+    </TableRow>)}
+    {draft && <TableRow><TableCell><Input autoFocus placeholder="Task name" value={draft.taskName} onChange={(event) => onDraftChange({ taskName: event.target.value })} onKeyDown={(event) => event.key === "Enter" && onDraftSave()} /></TableCell><TableCell><Input placeholder="Description" value={draft.taskDescription} onChange={(event) => onDraftChange({ taskDescription: event.target.value })} onKeyDown={(event) => event.key === "Enter" && onDraftSave()} /></TableCell><TableCell><Badge className="bg-orange-50 text-orange-700">pending</Badge></TableCell><TableCell><Select value={draft.skillId} onValueChange={(value) => { if (value === "create-new-skill") return onCreateSkill(); onDraftChange({ skillId: value ?? "" }) }}><SelectTrigger className="h-auto w-fit"><span>{draft.skillId ? skillName(draft.skillId) : "Select skill"}</span></SelectTrigger><SelectContent side="bottom" sideOffset={8} align="start" alignItemWithTrigger={false}>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}<SelectItem value="create-new-skill">+ Create new skill</SelectItem></SelectContent></Select></TableCell><TableCell><Button variant="ghost" size="sm" onClick={onDraftCancel}>Cancel</Button></TableCell></TableRow>}
+  </TableBody></Table></div>
 }

@@ -4,7 +4,7 @@ import * as React from "react"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 
-import { assignSkillToGoal, createWeeklyGoal } from "@/lib/api/weekly-goals"
+import { createWeeklyGoal } from "@/lib/api/weekly-goals"
 import type { Skill } from "@/lib/types/sadhana"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -43,15 +44,15 @@ export function CreateGoalDialog({
 }: CreateGoalDialogProps) {
   const [name, setName] = React.useState("")
   const [description, setDescription] = React.useState("")
-  const [skillId, setSkillId] = React.useState("")
+  const [skillIds, setSkillIds] = React.useState<string[]>([])
   const [dateRange, setDateRange] = React.useState<DateRange>()
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const selectedSkill = skills.find((skill) => skill.id === skillId)
+  const selectedSkills = skills.filter((skill) => skillIds.includes(skill.id))
 
   function handleSkillCreated(skill: Skill) {
     onSkillCreated(skill)
-    setSkillId(skill.id)
+    setSkillIds((current) => [...current, skill.id])
     setSkillDialogOpen(false)
     onOpenChange(true)
   }
@@ -71,16 +72,13 @@ export function CreateGoalDialog({
     setIsSubmitting(true)
 
     try {
-      const goal = await createWeeklyGoal({
+      await createWeeklyGoal({
         name,
         description,
         start_date: format(dateRange.from, "yyyy-MM-dd"),
         end_date: format(dateRange.to, "yyyy-MM-dd"),
+        skill_ids: skillIds,
       })
-
-      if (skillId) {
-        await assignSkillToGoal(goal.id, skillId)
-      }
 
       onOpenChange(false)
       toast.add({
@@ -106,7 +104,7 @@ export function CreateGoalDialog({
           <DialogHeader>
             <DialogTitle>Create weekly goal</DialogTitle>
             <DialogDescription>
-              Set a goal and connect it to a skill.
+              Set a goal and connect it to one or more skills.
             </DialogDescription>
           </DialogHeader>
           <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -139,16 +137,21 @@ export function CreateGoalDialog({
                     />
                   }
                 >
-                  {selectedSkill?.name ?? "Choose a skill"}
+                  {selectedSkills.length
+                    ? selectedSkills.map((skill) => skill.name).join(", ")
+                    : "Choose skills"}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" sideOffset={8} align="start">
                   {skills.map((skill) => (
-                    <DropdownMenuItem
+                    <DropdownMenuCheckboxItem
                       key={skill.id}
-                      onClick={() => setSkillId(skill.id)}
+                      checked={skillIds.includes(skill.id)}
+                      onClick={() => setSkillIds((current) => current.includes(skill.id)
+                        ? current.filter((id) => id !== skill.id)
+                        : [...current, skill.id])}
                     >
                       {skill.name}
-                    </DropdownMenuItem>
+                    </DropdownMenuCheckboxItem>
                   ))}
                   <DropdownMenuItem
                     onClick={() => {

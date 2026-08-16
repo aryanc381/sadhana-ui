@@ -71,4 +71,5 @@ export type CreateWeeklyGoalInput = {
   description?: string
   start_date: string
   end_date: string
+  skill_ids: string[]
 }
