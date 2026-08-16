@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google";
+import { Aldrich, Inter_Tight } from "next/font/google";
 import { Toaster } from "@/components/ui/toast";
 import { AuthGate } from "@/app/_components/AuthGate";
 import "./globals.css";
@@ -9,6 +9,12 @@ const interTight = Inter_Tight({
   subsets: ["latin"],
 });
 
+const aldrich = Aldrich({
+  variable: "--font-aldrich",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: "Sadhana",
   description: "made by ac",
@@ -16,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${interTight.variable} h-full antialiased`}>
+    <html lang="en" className={`${interTight.variable} ${aldrich.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthGate>{children}</AuthGate>
         <Toaster />
