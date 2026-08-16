@@ -86,6 +86,7 @@ export function CreateGoalDialog({
         description: name,
         type: "success",
       })
+      window.location.reload()
     } catch (error) {
       toast.add({
         title: "Could not create goal",
