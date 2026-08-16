@@ -24,13 +24,11 @@ const statusColors: Record<TaskStatus, string> = {
 }
 
 export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; skills: Skill[]; onChange: (ticket: DailyTicket) => void }) {
-  const [open, setOpen] = React.useState(false)
-  const [name, setName] = React.useState("")
-  const [description, setDescription] = React.useState("")
-  const [skillId, setSkillId] = React.useState("")
+  const [draft, setDraft] = React.useState({ taskName: "", taskDescription: "", skillId: "" })
+  const [isAdding, setIsAdding] = React.useState(false)
 
   const startTask = React.useCallback(() => {
-    setName(""); setDescription(""); setSkillId(""); setOpen(true)
+    setDraft({ taskName: "", taskDescription: "", skillId: "" }); setIsAdding(true)
   }, [])
 
   React.useEffect(() => {
@@ -44,22 +42,30 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
     return () => document.removeEventListener("keydown", handleShortcut, true)
   }, [startTask])
 
-  async function addTask(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function addTask() {
+    if (!draft.taskName.trim() || !draft.skillId) return
     try {
-      onChange(await createTask(ticket.id, { task_name: name, task_description: description, skill_id: skillId }))
-      setOpen(false)
+      onChange(await createTask(ticket.id, { task_name: draft.taskName.trim(), task_description: draft.taskDescription, skill_id: draft.skillId }))
+      setDraft({ taskName: "", taskDescription: "", skillId: "" })
+      setIsAdding(true)
       toast.add({ title: "Task created", type: "success" })
     } catch (error) { toast.add({ title: "Could not create task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
+  }
+
+  function saveDraftOnEnter(event: React.KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter") return
+    const target = event.target as HTMLElement
+    if (!(target instanceof HTMLInputElement) && target.dataset.slot !== "select-trigger") return
+    event.preventDefault()
+    void addTask()
   }
 
   return (
     <Card className="h-full min-h-0 min-w-0 flex flex-col overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between"><CardTitle>Today’s tasks</CardTitle><Button variant="outline" onClick={startTask} className="cursor-pointer">Add task <span className="text-muted-foreground">⌘ D</span></Button></CardHeader>
       <CardContent className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-auto">
-        {ticket.tasks.length ? <Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader><TableBody>{[...ticket.tasks].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]).map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No tasks today.</p>}
+        {ticket.tasks.length || isAdding ? <Table><TableHeader><TableRow><TableHead>Task</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader><TableBody>{[...ticket.tasks].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]).map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}{isAdding && <TableRow onKeyDown={saveDraftOnEnter}><TableCell><Input autoFocus placeholder="Task name" value={draft.taskName} onChange={(event) => setDraft((current) => ({ ...current, taskName: event.target.value }))} /></TableCell><TableCell><Select value={draft.skillId} onValueChange={(value) => setDraft((current) => ({ ...current, skillId: value ?? "" }))}><SelectTrigger className="h-auto w-fit"><Badge>{draft.skillId ? skills.find((skill) => skill.id === draft.skillId)?.name : "Select skill"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></TableCell><TableCell><Badge className={statusColors.pending}>pending</Badge></TableCell><TableCell><Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>Cancel</Button></TableCell></TableRow>}</TableBody></Table> : <p className="text-sm text-muted-foreground">No tasks today.</p>}
       </CardContent>
-      <Dialog open={open} onOpenChange={setOpen}><DialogContent><form onSubmit={addTask}><DialogHeader><DialogTitle>Add task</DialogTitle></DialogHeader><div className="space-y-4 py-4"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Task name" required /><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" /><Select value={skillId} onValueChange={(value) => setSkillId(value ?? "")} required><SelectTrigger><Badge>{skills.find((skill) => skill.id === skillId)?.name ?? "Select skill"}</Badge></SelectTrigger><SelectContent>{skills.map((skill) => <SelectItem key={skill.id} value={skill.id}>{skill.name}</SelectItem>)}</SelectContent></Select></div><DialogFooter><Button type="submit" className="cursor-pointer">Create task</Button></DialogFooter></form></DialogContent></Dialog>
     </Card>
   )
 }
