@@ -24,11 +24,11 @@ const statusColors: Record<TaskStatus, string> = {
 }
 
 export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; skills: Skill[]; onChange: (ticket: DailyTicket) => void }) {
-  const [draft, setDraft] = React.useState({ taskName: "", taskDescription: "", skillId: "" })
+  const [draft, setDraft] = React.useState({ taskName: "", skillId: "" })
   const [isAdding, setIsAdding] = React.useState(false)
 
   const startTask = React.useCallback(() => {
-    setDraft({ taskName: "", taskDescription: "", skillId: "" }); setIsAdding(true)
+    setDraft({ taskName: "", skillId: "" }); setIsAdding(true)
   }, [])
 
   React.useEffect(() => {
@@ -45,8 +45,8 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
   async function addTask() {
     if (!draft.taskName.trim() || !draft.skillId) return
     try {
-      onChange(await createTask(ticket.id, { task_name: draft.taskName.trim(), task_description: draft.taskDescription, skill_id: draft.skillId }))
-      setDraft({ taskName: "", taskDescription: "", skillId: "" })
+      onChange(await createTask(ticket.id, { task_name: draft.taskName.trim(), task_description: "", skill_id: draft.skillId }))
+      setDraft({ taskName: "", skillId: "" })
       setIsAdding(true)
       toast.add({ title: "Task created", type: "success" })
     } catch (error) { toast.add({ title: "Could not create task", description: error instanceof Error ? error.message : "Try again", type: "error" }) }
