@@ -1,14 +1,12 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
-import { SIGN_IN_PATH } from "@/lib/auth-paths"
-import { toast } from "@/components/ui/toast"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { SIGN_IN_PATH } from "@/lib/auth-paths";
+import { toast } from "@/components/ui/toast";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { useTheme } from "next-themes";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,45 +15,54 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+} from "@/components/ui/sidebar";
+import {
+  ChevronsUpDownIcon,
+  SparklesIcon,
+  BadgeCheckIcon,
+  CreditCardIcon,
+  BellIcon,
+  LogOutIcon,
+} from "lucide-react";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
-  const router = useRouter()
-  const initials = user.name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "U"
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
+  const initials =
+    user.name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "U";
 
   async function handleSignOut() {
-    const result = await authClient.signOut()
+    const result = await authClient.signOut();
     if (result.error) {
       toast.add({
         title: "Could not sign out",
         description: result.error.message ?? "Try again",
         type: "error",
-      })
-      return
+      });
+      return;
     }
-    router.replace(SIGN_IN_PATH)
-    router.refresh()
+    router.replace(SIGN_IN_PATH);
+    router.refresh();
   }
 
   return (
@@ -100,38 +107,42 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <SparklesIcon
-                />
+                <SparklesIcon />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <BadgeCheckIcon
-                />
+                <BadgeCheckIcon />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCardIcon
-                />
+                <CreditCardIcon />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <BellIcon
-                />
+                <BellIcon />
                 Notifications
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <AnimatedThemeToggler
+                className="relative flex w-full cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground"
+                theme={resolvedTheme === "dark" ? "dark" : "light"}
+                onThemeChange={setTheme}
+                variant="hexagon"
+              >
+                Change Theme
+              </AnimatedThemeToggler>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
-              <LogOutIcon
-              />
+              <LogOutIcon />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
