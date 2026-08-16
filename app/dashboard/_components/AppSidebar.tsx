@@ -19,12 +19,12 @@ import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIco
 const data = {
   teams: [
     {
-      name: "Acme Inc",
+      name: "sadhana",
       logo: (
         <GalleryVerticalEndIcon
         />
       ),
-      plan: "Enterprise",
+      plan: "ac's internal tool",
     },
     {
       name: "Acme Corp.",
