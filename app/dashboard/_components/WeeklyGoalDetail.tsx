@@ -59,7 +59,7 @@ import { CreateSkillDialog } from "./CreateSkillDialog"
 const taskStatuses: TaskStatus[] = ["pending", "completed", "missed"]
 
 const statusColors: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700 hover:bg-amber-50 hover:text-amber-700 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-950 dark:hover:text-amber-300",
+  pending: "bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700 dark:bg-orange-950 dark:text-orange-300 dark:hover:bg-orange-950 dark:hover:text-orange-300",
   completed: "bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700 dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-950 dark:hover:text-green-300",
   missed: "bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-950 dark:hover:text-red-300",
 }

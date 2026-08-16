@@ -18,7 +18,7 @@ type WeeklyGoalCardsProps = {
 
 const statusColors: Record<string, string> = {
   success: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
-  pending: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  pending: "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
   failure: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
   ongoing: "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
 }
