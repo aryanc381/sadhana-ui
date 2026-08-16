@@ -153,7 +153,7 @@ export function WeeklyGoalDetail({ goalId }: { goalId: string }) {
         task_name: draft.taskName.trim(),
         task_description: draft.taskDescription,
       }))
-      setDraft(undefined)
+      setDraft({ ticketId: draft.ticketId, taskName: "", taskDescription: "", skillId: "" })
       toast.add({ title: "Task created", type: "success" })
     } catch (error) {
       toast.add({ title: "Could not create task", description: error instanceof Error ? error.message : "Try again", type: "error" })
