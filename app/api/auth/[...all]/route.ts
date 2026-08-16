@@ -25,8 +25,9 @@ function addCorsHeaders(url: URL, headers: Headers) {
   }
 }
 
-// Define a CORS wrapper
-function withCors(handler: Function) {
+type RouteHandler = (req: Request) => Promise<Response> | Response;
+
+function withCors(handler: RouteHandler) {
   return async (req: Request) => {
     const res = await handler(req);
     addCorsHeaders(new URL(req.url), res.headers);

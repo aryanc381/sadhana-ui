@@ -1,6 +1,5 @@
 import { createAuthClient } from "better-auth/react";
 import { toast } from "@/components/ui/toast";
-import type { auth } from "./auth";
 
 export const authClient = createAuthClient({
   fetchOptions: {
