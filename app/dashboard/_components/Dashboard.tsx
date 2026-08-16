@@ -97,7 +97,7 @@ export function Dashboard() {
             <div className="flex items-end gap-4">
               <DatePickerWithRange
                 value={dateRange}
-                onChange={setDateRange}
+                onChange={(value) => value && setDateRange(value)}
               />
               <Field className="w-52">
                 <FieldLabel htmlFor="goal-select">Goal</FieldLabel>
