@@ -1,13 +1,9 @@
 import "dotenv/config";
 import { db } from "@/db";
-import {
-  account,
-  session,
-  user,
-  verification,
-} from "@/db/schema/auth-schema";
+import { account, session, user, verification } from "@/db/schema/auth-schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
@@ -21,12 +17,7 @@ export const auth = betterAuth({
     autoSignIn: true,
   },
   socialProviders: {},
-  user: {
-    additionalFields: {
-      phoneNumber: { type: "string", required: false },
-      lastLoginAt: { type: "date", required: false, input: false },
-    },
-  },
+  plugins: [nextCookies()],
   databaseHooks: {
     session: {
       create: {
