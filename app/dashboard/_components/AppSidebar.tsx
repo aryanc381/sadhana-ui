@@ -24,7 +24,7 @@ const data = {
         <GalleryVerticalEndIcon
         />
       ),
-      plan: "internal tool",
+      plan: "ac's internal tool",
     },
     {
       name: "Acme Corp.",
