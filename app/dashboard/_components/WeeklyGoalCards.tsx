@@ -34,9 +34,9 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
           <Link
             key={goal.id}
             href={`/dashboard/goals/${goal.id}`}
-            className="block min-w-72 shrink-0"
+            className="block w-80 max-w-[calc(100vw-3rem)] shrink-0"
           >
-            <Card className="h-28 w-full cursor-pointer gap-0 py-0 transition-colors hover:bg-muted/50">
+            <Card className="min-h-40 w-full cursor-pointer gap-0 py-0 transition-colors hover:bg-muted/50">
               <CardHeader className="p-3 pb-1">
                 <CardDescription>
                   Week {goal.week_number ?? index + 1}
@@ -48,14 +48,14 @@ export function WeeklyGoalCards({ goals }: WeeklyGoalCardsProps) {
                     {goal.status}
                   </Badge>
                 </CardAction>
-                <CardTitle>{goal.name}</CardTitle>
+                <CardTitle className="min-w-0 break-words pr-2">{goal.name}</CardTitle>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <div className="relative top-[1vw] flex justify-between gap-4 text-sm text-muted-foreground">
-                  <span className="whitespace-nowrap">
+                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <span>
                     {format(new Date(goal.start_date), "MMM dd, yyyy")}
                   </span>
-                  <span className="whitespace-nowrap">
+                  <span>
                     {format(new Date(goal.end_date), "MMM dd, yyyy")}
                   </span>
                 </div>

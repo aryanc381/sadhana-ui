@@ -101,7 +101,7 @@ export function CreateGoalDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create weekly goal</DialogTitle>
             <DialogDescription>
@@ -134,12 +134,18 @@ export function CreateGoalDialog({
                     <Button
                       type="button"
                       variant="outline"
-                      className="justify-between"
+                      className="min-w-0 w-full justify-between text-left"
                     />
                   }
                 >
                   {selectedSkills.length
-                    ? selectedSkills.map((skill) => skill.name).join(", ")
+                    ? <span className="flex min-w-0 flex-wrap gap-1 pr-2">
+                        {selectedSkills.map((skill) => (
+                          <span key={skill.id} className="max-w-full truncate rounded-md bg-muted px-1.5 py-0.5 text-xs">
+                            {skill.name}
+                          </span>
+                        ))}
+                      </span>
                     : "Choose skills"}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" sideOffset={8} align="start">
