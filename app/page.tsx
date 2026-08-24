@@ -1,16 +1,20 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RainbowButton } from "@/components/ui/rainbow-button"
 import { getMe, login, signup } from "@/lib/api/auth"
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter()
-  const [dialog, setDialog] = React.useState<"login" | "signup" | null>(null)
+  const searchParams = useSearchParams()
+  const authParam = searchParams.get("auth")
+  const [dialog, setDialog] = React.useState<"login" | "signup" | null>(
+    authParam === "login" || authParam === "signup" ? authParam : null,
+  )
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState("")
   const [loginForm, setLoginForm] = React.useState({ email: "", password: "" })
@@ -77,7 +81,15 @@ export default function Home() {
         </div>
       </section>
 
-      <Dialog open={dialog !== null} onOpenChange={(open) => !open && setDialog(null)}>
+      <Dialog
+        open={dialog !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialog(null)
+            router.replace("/")
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{dialog === "login" ? "Welcome back" : "Create your account"}</DialogTitle>
@@ -90,11 +102,11 @@ export default function Home() {
             <form className="grid gap-4" onSubmit={submitLogin}>
               <div className="grid gap-2">
                 <Label htmlFor="login-email">Email</Label>
-                <Input id="login-email" type="email" value={loginForm.email} onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })} required />
+                <Input id="login-email" type="email" placeholder="you@example.com" value={loginForm.email} onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })} required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="login-password">Password</Label>
-                <Input id="login-password" type="password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} required />
+                <Input id="login-password" type="password" placeholder="Enter your password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} required />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <RainbowButton type="submit" disabled={loading}>{loading ? "Logging in..." : "Login"}</RainbowButton>
@@ -103,19 +115,19 @@ export default function Home() {
             <form className="grid gap-4" onSubmit={submitSignup}>
               <div className="grid gap-2">
                 <Label htmlFor="signup-name">Name</Label>
-                <Input id="signup-name" value={signupForm.name} onChange={(event) => setSignupForm({ ...signupForm, name: event.target.value })} required />
+                <Input id="signup-name" placeholder="Your name" value={signupForm.name} onChange={(event) => setSignupForm({ ...signupForm, name: event.target.value })} required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="signup-email">Email</Label>
-                <Input id="signup-email" type="email" value={signupForm.email} onChange={(event) => setSignupForm({ ...signupForm, email: event.target.value })} required />
+                <Input id="signup-email" type="email" placeholder="you@example.com" value={signupForm.email} onChange={(event) => setSignupForm({ ...signupForm, email: event.target.value })} required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="signup-phone">Phone</Label>
-                <Input id="signup-phone" type="tel" value={signupForm.phone_number} onChange={(event) => setSignupForm({ ...signupForm, phone_number: event.target.value })} required />
+                <Input id="signup-phone" type="tel" placeholder="Your phone number" value={signupForm.phone_number} onChange={(event) => setSignupForm({ ...signupForm, phone_number: event.target.value })} required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="signup-password">Password</Label>
-                <Input id="signup-password" type="password" minLength={8} value={signupForm.password} onChange={(event) => setSignupForm({ ...signupForm, password: event.target.value })} required />
+                <Input id="signup-password" type="password" placeholder="At least 8 characters" minLength={8} value={signupForm.password} onChange={(event) => setSignupForm({ ...signupForm, password: event.target.value })} required />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <RainbowButton type="submit" variant="outline" disabled={loading}>{loading ? "Creating..." : "Signup"}</RainbowButton>
@@ -124,5 +136,13 @@ export default function Home() {
         </DialogContent>
       </Dialog>
     </main>
+  )
+}
+
+export default function Home() {
+  return (
+    <React.Suspense fallback={<main className="min-h-screen" />}>
+      <HomeContent />
+    </React.Suspense>
   )
 }
