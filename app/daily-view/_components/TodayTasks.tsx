@@ -25,6 +25,15 @@ const statusColors: Record<TaskStatus, string> = {
 export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; skills: Skill[]; onChange: (ticket: DailyTicket) => void }) {
   const [draft, setDraft] = React.useState({ taskName: "", skillId: "" })
   const [isAdding, setIsAdding] = React.useState(false)
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)")
+    const update = () => setIsMobile(media.matches)
+    update()
+    media.addEventListener("change", update)
+    return () => media.removeEventListener("change", update)
+  }, [])
 
   const startTask = React.useCallback(() => {
     setDraft({ taskName: "", skillId: "" })
@@ -47,6 +56,7 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
     try {
       onChange(await createTask(ticket.id, { task_name: draft.taskName.trim(), task_description: "", skill_id: draft.skillId }))
       setDraft({ taskName: "", skillId: "" })
+      if (isMobile) setIsAdding(false)
       toast.add({ title: "Task created", type: "success" })
     } catch (error) {
       toast.add({ title: "Could not create task", description: error instanceof Error ? error.message : "Try again", type: "error" })
@@ -68,18 +78,28 @@ export function TodayTasks({ ticket, skills, onChange }: { ticket: DailyTicket; 
         <Button variant="outline" onClick={startTask} className="shrink-0 cursor-pointer">Add task <span className="text-muted-foreground">⌘ D</span></Button>
       </CardHeader>
       <CardContent className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
-        {ticket.tasks.length || isAdding ? (
+        {ticket.tasks.length || (isAdding && !isMobile) ? (
           <Table>
             <TableHeader className="hidden md:table-header-group">
               <TableRow><TableHead>Task</TableHead><TableHead>Skill</TableHead><TableHead>Status</TableHead><TableHead /></TableRow>
             </TableHeader>
             <TableBody className="block md:table-row-group">
               {taskList.map((task) => <TaskRow key={task.id} task={task} ticketId={ticket.id} skills={skills} onChange={onChange} />)}
-              {isAdding && <NewTaskRow draft={draft} setDraft={setDraft} skills={skills} onCancel={() => setIsAdding(false)} onKeyDown={saveDraftOnEnter} />}
+              {isAdding && !isMobile && <NewTaskRow draft={draft} setDraft={setDraft} skills={skills} onCancel={() => setIsAdding(false)} onKeyDown={saveDraftOnEnter} />}
             </TableBody>
           </Table>
         ) : <p className="text-sm text-muted-foreground">No tasks today.</p>}
       </CardContent>
+      <Dialog open={isMobile && isAdding} onOpenChange={(open) => !open && setIsAdding(false)}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
+          <DialogHeader><DialogTitle>Add task</DialogTitle></DialogHeader>
+          <form onSubmit={(event) => { event.preventDefault(); void addTask() }} className="space-y-4">
+            <Input autoFocus placeholder="Task name" value={draft.taskName} onChange={(event) => setDraft((current) => ({ ...current, taskName: event.target.value }))} required />
+            <SkillSelect value={draft.skillId} skills={skills} onChange={(value) => setDraft((current) => ({ ...current, skillId: value }))} />
+            <DialogFooter><Button type="submit" className="cursor-pointer">Add task</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

@@ -66,12 +66,12 @@ function DailyViewHeader() {
 function DailyViewContent({ view, skills, onTicketChange }: { view: DailyViewData; skills: Skill[]; onTicketChange: (ticket: DailyTicket) => void }) {
   return (
     <div className="grid h-full min-w-0 gap-[calc(0.75rem+0.15vw)] lg:grid-cols-[1fr_2fr_1fr]">
-      <div className="flex min-h-0 flex-col gap-[calc(0.75rem+0.15vw)]">
+      <div className="hidden min-h-0 flex-col gap-[calc(0.75rem+0.15vw)] md:flex">
         <PreviousDayReview review={view.previous_day} />
         <TodayReview ticketId={view.today.ticket.id} review={view.today.review} />
       </div>
       <TodayTasks ticket={view.today.ticket} skills={skills} onChange={onTicketChange} />
-      <CalendarPanel />
+      <div className="hidden md:block"><CalendarPanel /></div>
     </div>
   )
 }
