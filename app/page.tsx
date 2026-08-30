@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RainbowButton } from "@/components/ui/rainbow-button"
+import { toast } from "@/components/ui/toast"
 import { getMe, login, signup } from "@/lib/api/auth"
 
 function HomeContent() {
@@ -16,7 +17,6 @@ function HomeContent() {
     authParam === "login" || authParam === "signup" ? authParam : null,
   )
   const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState("")
   const [loginForm, setLoginForm] = React.useState({ email: "", password: "" })
   const [signupForm, setSignupForm] = React.useState({
     name: "",
@@ -30,19 +30,21 @@ function HomeContent() {
   }, [router])
 
   function openDialog(nextDialog: "login" | "signup") {
-    setError("")
     setDialog(nextDialog)
   }
 
   async function submitLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError("")
     setLoading(true)
     try {
       await login(loginForm.email, loginForm.password)
       router.replace("/dashboard")
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not login")
+      toast.add({
+        title: "Could not log in",
+        description: reason instanceof Error ? reason.message : "Check your email and password.",
+        type: "error",
+      })
     } finally {
       setLoading(false)
     }
@@ -50,13 +52,16 @@ function HomeContent() {
 
   async function submitSignup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError("")
     setLoading(true)
     try {
       await signup(signupForm)
       router.replace("/dashboard")
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not create account")
+      toast.add({
+        title: "Could not create account",
+        description: reason instanceof Error ? reason.message : "Check your details and try again.",
+        type: "error",
+      })
     } finally {
       setLoading(false)
     }
@@ -108,7 +113,6 @@ function HomeContent() {
                 <Label htmlFor="login-password">Password</Label>
                 <Input id="login-password" type="password" placeholder="Enter your password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} required />
               </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
               <RainbowButton type="submit" disabled={loading}>{loading ? "Logging in..." : "Login"}</RainbowButton>
             </form>
           ) : (
@@ -129,7 +133,6 @@ function HomeContent() {
                 <Label htmlFor="signup-password">Password</Label>
                 <Input id="signup-password" type="password" placeholder="At least 8 characters" minLength={8} value={signupForm.password} onChange={(event) => setSignupForm({ ...signupForm, password: event.target.value })} required />
               </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
               <RainbowButton type="submit" variant="outline" disabled={loading}>{loading ? "Creating..." : "Signup"}</RainbowButton>
             </form>
           )}
