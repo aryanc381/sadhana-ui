@@ -157,9 +157,9 @@ function TaskRow({ task, ticketId, skills, onChange }: { task: DailyTask; ticket
   return (
     <>
       <TableRow onClick={openTask} className="block mb-[2vw] cursor-pointer rounded-[1vw] border p-[3vw] md:mb-0 md:table-row md:rounded-none md:border-0 md:p-0">
-        <TableCell className="flex items-center justify-between border-0 p-0 pb-[2vw] md:table-cell md:border-b md:p-4">{task.task_name}<Button variant="ghost" size="icon" aria-label="Task actions" onClick={(event) => { event.stopPropagation(); openTask() }} className="cursor-pointer text-muted-foreground md:hidden"><MoreHorizontal /></Button></TableCell>
-        <TableCell className="block border-0 p-0 pb-[1.5vw] md:table-cell md:border-b md:p-4"><Badge>{skills.find((skill) => skill.id === task.skill_id)?.name ?? "Unknown"}</Badge></TableCell>
-        <TableCell className="block border-0 p-0 md:table-cell md:border-b md:p-4"><StatusSelect status={task.status} onChange={changeStatus} /></TableCell>
+        <TableCell className="border-0 p-0 pb-[2vw] md:table-cell md:border-b md:p-4"><div className="flex items-start justify-between gap-[2vw]"><div className="min-w-0"><p>{task.task_name}</p><p className="mt-[1vw] text-sm text-muted-foreground md:hidden">{task.task_description || "No description"}</p></div><Button variant="ghost" size="icon" aria-label="Task actions" onClick={(event) => { event.stopPropagation(); openTask() }} className="shrink-0 cursor-pointer text-muted-foreground md:hidden"><MoreHorizontal /></Button></div></TableCell>
+        <TableCell className="hidden border-0 p-0 md:table-cell md:border-b md:p-4"><Badge>{skills.find((skill) => skill.id === task.skill_id)?.name ?? "Unknown"}</Badge></TableCell>
+        <TableCell className="block border-0 p-0 pt-[1vw] md:table-cell md:border-b md:p-4 md:pt-4"><StatusSelect status={task.status} onChange={changeStatus} /></TableCell>
         <TableCell className="hidden md:table-cell md:border-b md:p-4"><Button variant="ghost" size="icon" aria-label="Task actions" onClick={(event) => { event.stopPropagation(); openTask() }} className="cursor-pointer text-muted-foreground"><MoreHorizontal /></Button></TableCell>
       </TableRow>
       <Dialog open={open} onOpenChange={setOpen}>
