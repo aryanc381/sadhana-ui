@@ -32,4 +32,6 @@ jobs:
         run: pnpm lint
 
       - name: Build
+        env:
+          SADHANA_API_URL: https://sadhana.ncindia.cloud
         run: pnpm build
