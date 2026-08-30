@@ -26,7 +26,7 @@ function HomeContent() {
   })
 
   React.useEffect(() => {
-    getMe().then(() => router.replace("/dashboard")).catch(() => undefined)
+    getMe().then(() => router.replace("/daily-view")).catch(() => undefined)
   }, [router])
 
   function openDialog(nextDialog: "login" | "signup") {
@@ -39,7 +39,7 @@ function HomeContent() {
     try {
       await login(loginForm.email, loginForm.password)
       toast.add({ title: "Logged in successfully", type: "success" })
-      router.replace("/dashboard")
+      router.replace("/daily-view")
     } catch (reason) {
       toast.add({
         title: "Could not log in",
@@ -57,7 +57,7 @@ function HomeContent() {
     try {
       await signup(signupForm)
       toast.add({ title: "Account created successfully", type: "success" })
-      router.replace("/dashboard")
+      router.replace("/daily-view")
     } catch (reason) {
       toast.add({
         title: "Could not create account",
