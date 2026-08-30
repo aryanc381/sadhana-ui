@@ -3,7 +3,7 @@ type ApiResponse<T> = {
   payload: T
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SADHANA_API_URL ?? "/api/v1"
+const API_BASE_URL = "/api/v1"
 
 export async function request<T>(
   path: string,
