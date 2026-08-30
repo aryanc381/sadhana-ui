@@ -38,6 +38,7 @@ function HomeContent() {
     setLoading(true)
     try {
       await login(loginForm.email, loginForm.password)
+      toast.add({ title: "Logged in successfully", type: "success" })
       router.replace("/dashboard")
     } catch (reason) {
       toast.add({
@@ -55,6 +56,7 @@ function HomeContent() {
     setLoading(true)
     try {
       await signup(signupForm)
+      toast.add({ title: "Account created successfully", type: "success" })
       router.replace("/dashboard")
     } catch (reason) {
       toast.add({
