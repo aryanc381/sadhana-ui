@@ -32,4 +32,6 @@ jobs:
         run: pnpm lint
 
       - name: Build
+        env:
+          SADHANA_API_URL: ${{ vars.SADHANA_API_URL }}
         run: pnpm build
